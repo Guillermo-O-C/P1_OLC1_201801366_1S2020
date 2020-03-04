@@ -30,7 +30,8 @@ namespace Proyecto1OLC
             enie,
             cadena,
             coma,
-            aceptacion
+            aceptacion,
+            Epsilon
         }
 
         private Tipo tipoToken;
@@ -116,6 +117,8 @@ namespace Proyecto1OLC
                     return "Flecha";
                 case Tipo.aceptacion:
                     return "Simbolo Aceptación";
+                case Tipo.Epsilon:
+                    return "Epsilon";
                 default:
                     return "desconocido";
             }
@@ -167,8 +170,10 @@ namespace Proyecto1OLC
                     return 20;
                 case Tipo.aceptacion:
                     return 21;
-                default:
+                case Tipo.Epsilon:
                     return 22;
+                default:
+                    return 23;
             }
         }
 

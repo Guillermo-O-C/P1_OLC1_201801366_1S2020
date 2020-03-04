@@ -1,0 +1,10 @@
+D:\progra\Compi1\Proyecto1OLC\Proyecto1OLC\bin\Debug\Proyecto1OLC.exe.config
+D:\progra\Compi1\Proyecto1OLC\Proyecto1OLC\bin\Debug\Proyecto1OLC.exe
+D:\progra\Compi1\Proyecto1OLC\Proyecto1OLC\bin\Debug\Proyecto1OLC.pdb
+D:\progra\Compi1\Proyecto1OLC\Proyecto1OLC\obj\Debug\Proyecto1OLC.csprojAssemblyReference.cache
+D:\progra\Compi1\Proyecto1OLC\Proyecto1OLC\obj\Debug\Proyecto1OLC.Form1.resources
+D:\progra\Compi1\Proyecto1OLC\Proyecto1OLC\obj\Debug\Proyecto1OLC.Properties.Resources.resources
+D:\progra\Compi1\Proyecto1OLC\Proyecto1OLC\obj\Debug\Proyecto1OLC.csproj.GenerateResource.cache
+D:\progra\Compi1\Proyecto1OLC\Proyecto1OLC\obj\Debug\Proyecto1OLC.csproj.CoreCompileInputs.cache
+D:\progra\Compi1\Proyecto1OLC\Proyecto1OLC\obj\Debug\Proyecto1OLC.exe
+D:\progra\Compi1\Proyecto1OLC\Proyecto1OLC\obj\Debug\Proyecto1OLC.pdb
