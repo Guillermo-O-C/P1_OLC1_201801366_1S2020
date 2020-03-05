@@ -130,7 +130,7 @@ namespace Proyecto1OLC
                 }
                 else if ("Cadena".Equals(objeto.GetTipo()))
                 {
-                    objeto.setValor(objeto.GetVal().Substring(1, objeto.GetVal().Length-2 ));
+                    objeto.setValor(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2));
                     Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
                 }
                 else if ("Identificador".Equals(objeto.GetTipo()))
@@ -226,7 +226,7 @@ namespace Proyecto1OLC
         void ThompsonTree(Nodo raiz)
         {
             //Creo que debe ir antes para que vaya cambiando todo desde un inicio
-            if(raiz.getValue().GetTipo().Equals("Signo de Interrogacion")){
+            if (raiz.getValue().GetTipo().Equals("Signo de Interrogacion")) {
                 //Sustitucuon del a? por un a|E
                 raiz.setTipo(Nodo.Tipo.Operador_Binario);
                 raiz.setValue(new Token(Token.Tipo.Absoluto, "|", 0, 0));
@@ -239,7 +239,7 @@ namespace Proyecto1OLC
             {
                 //Convierte a+ en a.a*
                 raiz.setTipo(Nodo.Tipo.Operador_Binario);
-                raiz.setValue(new Token(Token.Tipo.Absoluto, ".", 0, 0));
+                raiz.setValue(new Token(Token.Tipo.Punto, ".", 0, 0));
                 //Copiando el hijo izquierdo
                 Nodo LeftSon = new Nodo(raiz.getLeft().getTipo(), raiz.getLeft().getValue(), nodos);
                 nodos++;
@@ -256,7 +256,7 @@ namespace Proyecto1OLC
                 ThompsonTree(raiz.getLeft());
             }
             //estaba en esta posicion
-            if(raiz.getRight() != null)
+            if (raiz.getRight() != null)
             {
                 ThompsonTree(raiz.getRight());
             }
@@ -288,8 +288,8 @@ namespace Proyecto1OLC
 
         }
 
-        Boolean IsLeftSon(Nodo raiz, Nodo hijo){
-            if(raiz.getLeft() == hijo)
+        Boolean IsLeftSon(Nodo raiz, Nodo hijo) {
+            if (raiz.getLeft() == hijo)
             {
                 return true;
             }
@@ -302,14 +302,15 @@ namespace Proyecto1OLC
             ListasAnalisis resultado = analizador.escanear(GetRichTextBox().Text);
             //GraphConjuntos(resultado.getConjuntos());
             analizador.imprimiListaToken(resultado.getSalida());
-            //System.out.println("Expreisones Regulares");
-            //for (int i = 0; i < resultado.getExpresionesRegulares().size(); i++)
-            foreach(ExpresionRegular Expr in resultado.getExpresionesRegulares())
+            foreach (ExpresionRegular Expr in resultado.getExpresionesRegulares())
             {
+                //No reiniciaba conteo
+                nodos = 2;
+                nodosAFN = 0;
+
                 ListasAnalisis expresiones = analizador.escanear(Expr.getExpresion());
                 analizador.imprimiListaToken(expresiones.getSalida());
                 LinkedList<Nodo> temporal = SetType(expresiones.getSalida());
-                //System.out.println(temporal.size());
                 temporal.AddFirst(new Nodo(Nodo.Tipo.Operador_Binario, new Token(Token.Tipo.Punto, ".", 0, 0), 0));
                 temporal.AddLast(new Nodo(Nodo.Tipo.Terminal, new Token(Token.Tipo.aceptacion, "#", 0, 0), 1));
                 Nodo cabeza = GenerarArbol(temporal);
@@ -319,23 +320,21 @@ namespace Proyecto1OLC
                 Graficar(cabeza, Expr.getExpID() + "_Th");
                 AFN automata = Thompson(cabeza.getLeft());
                 LinkedList<int> Recorridos = new LinkedList<int>();
-                GraphAFN(GenGraphAFN(automata.getPrimero(), Recorridos), Expr.getExpID()+"_AFN");
-                /*PreOrderAnulables(cabeza);
-                PreOrderPrimeros(cabeza);
-                PreOrderUltimos(cabeza);
-                PreOrderSiguientes(cabeza);
-                LinkedList<Nodo> Hojas = new LinkedList<>();
-                GetHojas(cabeza, Hojas);
-                System.out.println(cabeza.getID());
-                GraphSiguientes(Hojas, resultado.getExpresionesRegulares().get(i).getExpID());
-                */
+                GraphAFN(GenGraphAFN(automata.getPrimero(), Recorridos), Expr.getExpID() + "_AFN");
+                LinkedList<NodoAFN> NodesList = new LinkedList<NodoAFN>();
+                AFN_Nodes(automata.getPrimero(), NodesList);
+                Console.WriteLine(NodesList.Count);
+                LinkedList<NodoAFN> conjunto = new LinkedList<NodoAFN>();
+                conjunto.AddLast(NodesList.First());
+                Cerradura(NodesList.First(), "Epsilon", conjunto);
+                conjunto.First();
             }
         }
 
         void Graficar(Nodo raiz, string nombre)
         {
             string entrada = "digraph G {\n nodesep=0.3;\n ranksep=0.2;\n    margin=0.1;\n   node [shape=circle];\n  edge [arrowsize=0.8];";
-            entrada += NextNodos(raiz) +"}";
+            entrada += NextNodos(raiz) + "}";
             System.IO.File.WriteAllText(@"D:\\" + nombre + ".txt", entrada);
             //ProcessStartInfo startInfo = new ProcessStartInfo(@"D:\Descargas\graphviz-2.38\release\bin\dot.exe");
             ProcessStartInfo startInfo = new ProcessStartInfo(@"D:\Programas y +\graphviz-2.38\release\bin\dot.exe");
@@ -344,7 +343,7 @@ namespace Proyecto1OLC
         }
         void GraphAFN(string contenido, string nombre)
         {
-            string entrada = "digraph G {\n nodesep=0.3;\n ranksep=0.2;\n    margin=0.1;\n   node [shape=circle];\n  edge [arrowsize=0.8];";
+            string entrada = "digraph G {\n rankdir=LR nodesep=0.3;\n ranksep=0.2;\n    margin=0.1;\n   node [shape=circle];\n  edge [arrowsize=0.8];";
             entrada += contenido + "}";
             System.IO.File.WriteAllText(@"D:\\" + nombre + ".txt", entrada);
             //ProcessStartInfo startInfo = new ProcessStartInfo(@"D:\Descargas\graphviz-2.38\release\bin\dot.exe");
@@ -375,7 +374,7 @@ namespace Proyecto1OLC
         {
             AFN hijoIzq = null;
             AFN hijoDer = null;
-            if(Raiz.getLeft() != null)
+            if (Raiz.getLeft() != null)
             {
                 hijoIzq = Thompson(Raiz.getLeft());
                 Console.WriteLine(hijoIzq.getPrimero().getID());
@@ -419,12 +418,18 @@ namespace Proyecto1OLC
                 nodosAFN++;
                 inicio.setLeft(join);
                 */
-                hijoIzq.getUltimo().setLeft(hijoDer.getPrimero());
+                hijoIzq.getUltimo().setLeft(hijoDer.getPrimero().getLeft());
+                hijoIzq.getUltimo().setRight(hijoDer.getPrimero().getRight());
+                hijoIzq.getUltimo().setTransicionLeft(hijoDer.getPrimero().getTransicionLeft());
+                hijoIzq.getUltimo().setTransicionRight(hijoDer.getPrimero().getRransicionRight());
+                //hijoIzq.getUltimo().setLeft(hijoDer.getPrimero());
+                //LinkedList<int> Recorridos = new LinkedList<int>();
+                //JoinAFN(hijoIzq.getPrimero(),null, hijoDer.getPrimero(), Recorridos);
                 AFN Union = new AFN(hijoIzq.getPrimero(), hijoDer.getUltimo());
                 //GraphAFN(GenGraphAFN(hijoIzq.getPrimero()), "AFN"+hijoIzq.getPrimero().getID());
                 return Union;
             }
-            else if(Raiz.getValue().GetTipo().Equals("Cerradura de Kleene"))//Asterisco
+            else if (Raiz.getValue().GetTipo().Equals("Cerradura de Kleene"))//Asterisco
             {
                 NodoAFN inicio = new NodoAFN(nodosAFN);
                 nodosAFN++;
@@ -469,11 +474,11 @@ namespace Proyecto1OLC
             if (!Recorridos.Contains(raiz.getID()))
             {
                 Recorridos.AddLast(raiz.getID());
-                content += "\"" + raiz.getID() +"\" [label=\"\"]";
+                content += "\"" + raiz.getID() + "\" [label=\""+raiz.getID()+"\"]";
 
                 if (raiz.getLeft() != null)
                 {
-                    content +="\""+raiz.getID()+"\" -> \""+ raiz.getLeft().getID()+"\"[label=\"" + raiz.getTransicionLeft() + "\"];\n";
+                    content += "\"" + raiz.getID() + "\" -> \"" + raiz.getLeft().getID() + "\"[label=\"" + raiz.getTransicionLeft() + "\"];\n";
                     content += GenGraphAFN(raiz.getLeft(), Recorridos);
                 }
                 if (raiz.getRight() != null)
@@ -483,7 +488,47 @@ namespace Proyecto1OLC
                 }
             }
             return content;
-            
+        }
+
+        void Cerradura(NodoAFN estado, String Transicion, LinkedList<NodoAFN> conjunto)
+        {
+            if (estado.getTransicionLeft().Equals(Transicion))
+            {                
+                if (!conjunto.Contains(estado.getLeft()))
+                {
+                    conjunto.AddLast(estado.getLeft());
+                    Cerradura(estado.getLeft(), Transicion, conjunto);
+                }
+            }
+            if (estado.getRransicionRight().Equals(Transicion))
+            {                
+                if (!conjunto.Contains(estado.getRight()))
+                {
+                    conjunto.AddLast(estado.getRight());
+                    Cerradura(estado.getLeft(), Transicion, conjunto);
+                }
+            }
+        }
+
+        void AFN_Nodes(NodoAFN raiz, LinkedList<NodoAFN> Recorridos)
+        {
+            if (!Recorridos.Contains(raiz))
+            {
+                Recorridos.AddLast(raiz);
+                if (raiz.getLeft() != null)
+                {
+                    AFN_Nodes(raiz.getLeft(), Recorridos);
+                }
+                if (raiz.getRight() != null)
+                {
+                    AFN_Nodes(raiz.getRight(), Recorridos);
+                }
+            }
+        }
+
+        void GetTransiciones()
+        {
+
         }
     }
 }
