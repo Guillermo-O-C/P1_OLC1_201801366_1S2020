@@ -35,6 +35,12 @@ namespace Proyecto1OLC
         int con = 0;
         int nodos = 2;
         int nodosAFN = 0;
+        int estados;
+        LinkedList<string> Terminales;
+        LinkedList<AFDMovement> AFD = new LinkedList<AFDMovement>();
+        LinkedList<LinkedList<NodoAFN>> States = new LinkedList<LinkedList<NodoAFN>>();
+        LinkedList<TransicionesAFD> TablaDeTransiciones;
+        LinkedList<int> Aceptacion = new LinkedList<int>();
         private void NuevaPestañaToolStripMenuItem_Click(object sender, EventArgs e)
         {
             con++;
@@ -130,11 +136,13 @@ namespace Proyecto1OLC
                 }
                 else if ("Cadena".Equals(objeto.GetTipo()))
                 {
+                    Terminales.AddLast(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2));
                     objeto.setValor(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2));
                     Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
                 }
                 else if ("Identificador".Equals(objeto.GetTipo()))
                 {
+                    Terminales.AddLast(objeto.GetVal());
                     Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
                 }
                 nodos++;
@@ -307,6 +315,13 @@ namespace Proyecto1OLC
                 //No reiniciaba conteo
                 nodos = 2;
                 nodosAFN = 0;
+                estados = 0;
+                Terminales = new LinkedList<string>();
+                Aceptacion = new LinkedList<int>();
+                TablaDeTransiciones = new LinkedList<TransicionesAFD>();
+                AFD = new LinkedList<AFDMovement>();
+                States = new LinkedList<LinkedList<NodoAFN>>();
+
 
                 ListasAnalisis expresiones = analizador.escanear(Expr.getExpresion());
                 analizador.imprimiListaToken(expresiones.getSalida());
@@ -326,8 +341,16 @@ namespace Proyecto1OLC
                 Console.WriteLine(NodesList.Count);
                 LinkedList<NodoAFN> conjunto = new LinkedList<NodoAFN>();
                 conjunto.AddLast(NodesList.First());
-                Cerradura(NodesList.First(), "Epsilon", conjunto);
-                conjunto.First();
+                LinkedList<NodoAFN> EstadoInicial = new LinkedList<NodoAFN>();
+                EstadoInicial.AddLast(automata.getPrimero());
+                Cerradura(EstadoInicial);
+                int o =States.Count;
+                for (int i = 0; i < estados; i++)
+                {
+                    Cerradura(States.ElementAt(i));
+                }
+                int es = TablaDeTransiciones.Count;
+                GrapfAFD(TablaDeTransiciones, Expr.getExpID());
             }
         }
 
@@ -490,14 +513,21 @@ namespace Proyecto1OLC
             return content;
         }
 
-        void Cerradura(NodoAFN estado, String Transicion, LinkedList<NodoAFN> conjunto)
+        LinkedList<NodoAFN> Mover(NodoAFN estado, string terminal)
+        {
+            LinkedList<NodoAFN> llegadas = new LinkedList<NodoAFN>();
+            IrA(estado, terminal, llegadas);
+            return llegadas;
+        }
+
+        void IrA(NodoAFN estado, String Transicion, LinkedList<NodoAFN> conjunto)
         {
             if (estado.getTransicionLeft().Equals(Transicion))
             {                
                 if (!conjunto.Contains(estado.getLeft()))
                 {
                     conjunto.AddLast(estado.getLeft());
-                    Cerradura(estado.getLeft(), Transicion, conjunto);
+                    IrA(estado.getLeft(), Transicion, conjunto);
                 }
             }
             if (estado.getRransicionRight().Equals(Transicion))
@@ -505,7 +535,7 @@ namespace Proyecto1OLC
                 if (!conjunto.Contains(estado.getRight()))
                 {
                     conjunto.AddLast(estado.getRight());
-                    Cerradura(estado.getLeft(), Transicion, conjunto);
+                    IrA(estado.getLeft(), Transicion, conjunto);
                 }
             }
         }
@@ -526,9 +556,122 @@ namespace Proyecto1OLC
             }
         }
 
-        void GetTransiciones()
+        void Cerradura(LinkedList<NodoAFN> conjunto)
         {
+            if (estados < 1)
+            {
+                LinkedList<NodoAFN> CerraduraResult = Mover(conjunto.ElementAt(0), "Epsilon");
+                CerraduraResult.AddFirst(conjunto.ElementAt(0));
+                States.AddLast(CerraduraResult);
+                estados++;
+            }
+            else
+            {
+                for(int i =0; i<Terminales.Count; i++)
+                {
+                    LinkedList<NodoAFN> Transiciones = new LinkedList<NodoAFN>();
+                    for(int e = 0; e < conjunto.Count; e++)
+                    {
+                        LinkedList<NodoAFN> Llegadas = Mover(conjunto.ElementAt(e), Terminales.ElementAt(i));
+                        for(int o = 0; o < Llegadas.Count; o++) 
+                        {
+                            Transiciones.AddLast(Llegadas.ElementAt(o));
+                        }                    
+                    }
+                    if (Transiciones.Count > 0)
+                    {
+                        for(int u =0; u < Transiciones.Count; u++)
+                        {
+                            LinkedList<NodoAFN> CerraduraResult = Mover(Transiciones.ElementAt(u), "Epsilon");
+                            CerraduraResult.AddFirst(Transiciones.ElementAt(u));
+                            int firstConjunto = ConjuntoID(conjunto);
+                            if (!ExisteConjunto(CerraduraResult))
+                            {
+                                States.AddLast(CerraduraResult);
+                                estados++;
+                                for(int w =0; w < CerraduraResult.Count; w++)
+                                {
+                                    if (CerraduraResult.ElementAt(w).getID() == (nodosAFN-1))
+                                    {
+                                        Aceptacion.AddLast(estados);
+                                    }
+                                }
+                                TablaDeTransiciones.AddLast(new TransicionesAFD(firstConjunto, Terminales.ElementAt(i), estados));                                
+                            }
+                            else
+                            {
+                                TablaDeTransiciones.AddLast(new TransicionesAFD(firstConjunto, Terminales.ElementAt(i), ConjuntoID(CerraduraResult)));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
 
+        Boolean ExisteConjunto(LinkedList<NodoAFN> conjunto)
+        {
+            for(int i =0; i < States.Count; i++)
+            {
+                if (SameList(States.ElementAt(i) , conjunto))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        int ConjuntoID(LinkedList<NodoAFN> conjunto)
+        {
+            for (int i = 0; i < States.Count; i++)
+            {
+                if (SameList(States.ElementAt(i), conjunto))
+                {
+                    return i+1;
+                }
+            }
+            return 0;
+        }
+
+        Boolean SameList(LinkedList<NodoAFN> First, LinkedList<NodoAFN> Second)
+        {
+            if (First.Count != Second.Count)
+            {
+                return false;
+            }
+            else
+            {
+                for(int i =0; i < First.Count; i++)
+                {
+                    if (!First.Contains(Second.ElementAt(i)))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        void GrapfAFD(LinkedList<TransicionesAFD> lista, string nombre)
+        {
+            
+            string entrada = "digraph G {\n rankdir=LR nodesep=0.3;\n ranksep=0.2;\n    margin=0.1;\n   node [shape=circle];\n  edge [arrowsize=0.8];";
+            string contenido="node [shape = doublecircle];";
+            for (int i =0; i < Aceptacion.Count; i++)
+            {
+                contenido += " "+Aceptacion.ElementAt(i)+" ";
+            }
+            contenido += ";";
+            contenido += "node[shape = circle]; ";
+            foreach(TransicionesAFD transicion in lista)
+            {
+                contenido += "\""+transicion.Conjunto+"\" -> \""+transicion.Llegada+"\" [label=\""+transicion.Transicion+"\"];\n";
+            }
+            entrada += contenido + "}";
+            System.IO.File.WriteAllText(@"D:\\" + nombre + "_AFD.txt", entrada);
+            //ProcessStartInfo startInfo = new ProcessStartInfo(@"D:\Descargas\graphviz-2.38\release\bin\dot.exe");
+            ProcessStartInfo startInfo = new ProcessStartInfo(@"D:\Programas y +\graphviz-2.38\release\bin\dot.exe");
+            startInfo.Arguments = "-Tpng \"D:\\" + nombre + "_AFD.txt\" -o \"D:\\" + nombre + "_AFD.png\"";
+            Process.Start(startInfo);
         }
     }
 }
