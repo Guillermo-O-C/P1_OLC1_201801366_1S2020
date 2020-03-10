@@ -351,6 +351,7 @@ namespace Proyecto1OLC
                 }
                 int es = TablaDeTransiciones.Count;
                 GrapfAFD(TablaDeTransiciones, Expr.getExpID());
+                printTransTable(TablaDeTransiciones, Expr.getExpID());
             }
         }
 
@@ -527,7 +528,10 @@ namespace Proyecto1OLC
                 if (!conjunto.Contains(estado.getLeft()))
                 {
                     conjunto.AddLast(estado.getLeft());
+                    if (Transicion.Equals("Epsilon") && (estado.getLeft().getID()!=(nodosAFN-1))) //Verifica que solo siga el camino de epsilon y sino devuelve solo la primera coincidencia de los terminales
+                    {
                     IrA(estado.getLeft(), Transicion, conjunto);
+                    }
                 }
             }
             if (estado.getRransicionRight().Equals(Transicion))
@@ -535,7 +539,10 @@ namespace Proyecto1OLC
                 if (!conjunto.Contains(estado.getRight()))
                 {
                     conjunto.AddLast(estado.getRight());
-                    IrA(estado.getLeft(), Transicion, conjunto);
+                    if (Transicion.Equals("Epsilon") && (estado.getRight().getID() != (nodosAFN - 1))) 
+                    {
+                        IrA(estado.getRight(), Transicion, conjunto);
+                    }
                 }
             }
         }
@@ -596,11 +603,19 @@ namespace Proyecto1OLC
                                         Aceptacion.AddLast(estados);
                                     }
                                 }
-                                TablaDeTransiciones.AddLast(new TransicionesAFD(firstConjunto, Terminales.ElementAt(i), estados));                                
+                                TransicionesAFD nonlisted = new TransicionesAFD(firstConjunto, Terminales.ElementAt(i), estados);
+                                if (!ExistingTransicion(nonlisted))
+                                {
+                                TablaDeTransiciones.AddLast(nonlisted);  
+                                }                              
                             }
                             else
                             {
-                                TablaDeTransiciones.AddLast(new TransicionesAFD(firstConjunto, Terminales.ElementAt(i), ConjuntoID(CerraduraResult)));
+                                TransicionesAFD nonlisted = new TransicionesAFD(firstConjunto, Terminales.ElementAt(i), ConjuntoID(CerraduraResult));
+                                if (!ExistingTransicion(nonlisted))
+                                {
+                                    TablaDeTransiciones.AddLast(nonlisted);
+                                }
                             }
                         }
                     }
@@ -673,5 +688,55 @@ namespace Proyecto1OLC
             startInfo.Arguments = "-Tpng \"D:\\" + nombre + "_AFD.txt\" -o \"D:\\" + nombre + "_AFD.png\"";
             Process.Start(startInfo);
         }
+
+        void printTransTable(LinkedList<TransicionesAFD> lista, string nombre)
+        {
+            try
+            {
+                int i = 0;
+                StreamWriter File = new StreamWriter("D:\\"+nombre+".html");
+                File.Write("<html>\n");
+                File.Write("<head>\n");
+                File.Write("<meta charset = \"utf -8\">\n");
+                File.Write("<title> Tabla de Tokens</title>\n");
+                File.Write("</head>\n");
+                File.Write("<body bgcolor=#000>\n");
+                File.Write("<table align = \"center\" style = \"width:80% ; font-family: consolas; \">\n");
+                File.Write("<tr bgcolor = \"F5C82E\" ><td colspan = 4 align = \"center\" ><h3> Tabla de Tokens</h3></td></tr>\n");
+                File.Write("<tr bgcolor = \"FBDD76\" style = \"width: 10%; text-align:center; \"><td style = \"width: 10%; text-align:center; \">#</td><td>De</td><td style = \"width: 30% \">Con</td><td style =\"width: 30% \">Llega a</td></tr>\n");
+
+
+                Console.WriteLine("-------------------------Tabla de Tokens--------------------------");
+                foreach (TransicionesAFD item in lista)
+                {
+                    i++;
+                    Console.WriteLine(i + " " + item.Conjunto + " <--> " + item.Transicion + " <--> " + item.Llegada);
+                    File.Write("<tr bgcolor = \"FBF3D6\"><td style = \"text-align:center; \">" + i + "</td><td style = \"text-align:center; \">" + item.Conjunto + "</td><td>" + item.Transicion + "</td><td>" + item.Llegada + "</td></tr>\n");
+                }
+                Console.WriteLine("-------------------------Fin Tabla de Tokens--------------------------");
+                File.Write("</table>\n");
+                File.Write("</body>\n");
+                File.Write("</html>\n");
+                File.Close();
+
+            }
+            catch (Exception e)
+            {
+            }
+        }
+
+        Boolean ExistingTransicion(TransicionesAFD nonlisted)
+        {
+            for(int i =0; i < TablaDeTransiciones.Count; i++)
+            {
+                TransicionesAFD listed = TablaDeTransiciones.ElementAt(i);
+                if (listed.Conjunto.Equals(nonlisted.Conjunto) && listed.Transicion.Equals(nonlisted.Transicion) && listed.Llegada.Equals(nonlisted.Llegada))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
     }
 }
