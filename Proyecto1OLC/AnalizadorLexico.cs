@@ -422,7 +422,7 @@ namespace Proyecto1OLC
             {
             }
         }
-        public static void imprimiListaErrores(LinkedList<Errores> laser)
+        public void imprimiListaErrores(LinkedList<Errores> laser)
         {
             if (laser != null)
             {

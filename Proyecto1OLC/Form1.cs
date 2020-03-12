@@ -36,6 +36,7 @@ namespace Proyecto1OLC
         int nodos = 2;
         int nodosAFN = 0;
         int estados;
+        LinkedList<AnalizadorGenerico> Tablas;
         LinkedList<string> Terminales;
         LinkedList<AFDMovement> AFD = new LinkedList<AFDMovement>();
         LinkedList<LinkedList<NodoAFN>> States = new LinkedList<LinkedList<NodoAFN>>();
@@ -136,13 +137,20 @@ namespace Proyecto1OLC
                 }
                 else if ("Cadena".Equals(objeto.GetTipo()))
                 {
+                    if(!Terminales.Contains(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2)))
+                    {
                     Terminales.AddLast(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2));
+                    }
                     objeto.setValor(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2));
                     Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
                 }
                 else if ("Identificador".Equals(objeto.GetTipo()))
                 {
-                    Terminales.AddLast(objeto.GetVal());
+                    if (!Terminales.Contains(objeto.GetVal()))
+                    {
+                        Terminales.AddLast(objeto.GetVal());
+                    }
+                    
                     Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
                 }
                 nodos++;
@@ -306,12 +314,16 @@ namespace Proyecto1OLC
 
         private void AnalizarToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Tablas = new LinkedList<AnalizadorGenerico>();
             AnalizadorLexico analizador = new AnalizadorLexico();
             ListasAnalisis resultado = analizador.escanear(GetRichTextBox().Text);
             //GraphConjuntos(resultado.getConjuntos());
             analizador.imprimiListaToken(resultado.getSalida());
+            analizador.imprimiListaErrores(resultado.getError());
+            treeView1.Nodes.Clear();
             foreach (ExpresionRegular Expr in resultado.getExpresionesRegulares())
             {
+                treeView1.Nodes.Add(Expr.getExpID());
                 //No reiniciaba conteo
                 nodos = 2;
                 nodosAFN = 0;
@@ -321,10 +333,7 @@ namespace Proyecto1OLC
                 TablaDeTransiciones = new LinkedList<TransicionesAFD>();
                 AFD = new LinkedList<AFDMovement>();
                 States = new LinkedList<LinkedList<NodoAFN>>();
-
-
                 ListasAnalisis expresiones = analizador.escanear(Expr.getExpresion());
-                analizador.imprimiListaToken(expresiones.getSalida());
                 LinkedList<Nodo> temporal = SetType(expresiones.getSalida());
                 temporal.AddFirst(new Nodo(Nodo.Tipo.Operador_Binario, new Token(Token.Tipo.Punto, ".", 0, 0), 0));
                 temporal.AddLast(new Nodo(Nodo.Tipo.Terminal, new Token(Token.Tipo.aceptacion, "#", 0, 0), 1));
@@ -352,6 +361,7 @@ namespace Proyecto1OLC
                 int es = TablaDeTransiciones.Count;
                 GrapfAFD(TablaDeTransiciones, Expr.getExpID());
                 printTransTable(TablaDeTransiciones, Expr.getExpID());
+                Tablas.AddLast(new AnalizadorGenerico(Expr.getExpID(), TablaDeTransiciones, Terminales));
             }
         }
 
@@ -409,6 +419,17 @@ namespace Proyecto1OLC
                 Console.WriteLine(hijoDer.getPrimero().getID());
             }
             if (Raiz.getValue().GetTipo().Equals("Cadena"))
+            {
+                NodoAFN inicio = new NodoAFN(nodosAFN);
+                nodosAFN++;
+                NodoAFN fin = new NodoAFN(nodosAFN);
+                nodosAFN++;
+                inicio.setLeft(fin);
+                inicio.setTransicionLeft(Raiz.getValue().GetVal());
+                AFN Union = new AFN(inicio, fin);
+                return Union;
+            }
+            if (Raiz.getValue().GetTipo().Equals("Epsilon"))
             {
                 NodoAFN inicio = new NodoAFN(nodosAFN);
                 nodosAFN++;
@@ -738,5 +759,66 @@ namespace Proyecto1OLC
             return false;
         }
 
+        void CreateTable(LinkedList<TransicionesAFD> Tabla, LinkedList<string> TerminalesList)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Estado");
+            foreach(string terminal in TerminalesList)
+            {
+                dt.Columns.Add(terminal);
+            }
+            LinkedList<int> estados = new LinkedList<int>();
+            foreach(TransicionesAFD transicion in Tabla)
+            {
+                if (!estados.Contains(transicion.Conjunto))
+                {
+                    estados.AddLast(transicion.Conjunto);
+                }
+                if (!estados.Contains(transicion.Llegada))
+                {
+                    estados.AddLast(transicion.Llegada);
+                }
+            }
+            int w = TerminalesList.Count+1;
+            string[] transiciones = new string[w];
+            for(int i =0; i < estados.Count; i++)
+            {
+                transiciones[0] = estados.ElementAt(i).ToString();
+                for(int o=0; o < TerminalesList.Count; o++)
+                {
+                    for (int e =0; e < Tabla.Count; e++)
+                    {
+                        if(Tabla.ElementAt(e).Conjunto==estados.ElementAt(i) && Tabla.ElementAt(e).Transicion.Equals(TerminalesList.ElementAt(o))){
+                            transiciones[o+1] = Tabla.ElementAt(e).Llegada.ToString();
+                        }
+                    }                    
+                }
+                dt.Rows.Add(transiciones);
+                transiciones = new string[w];
+            }
+            dgV1.DataSource = dt;
+        }
+
+        private void TreeView1_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            if (treeView1.SelectedNode != null)
+            {
+                foreach(AnalizadorGenerico analizador in Tablas){
+                    if (analizador.ExprID1.Equals(treeView1.SelectedNode.Text)){
+                        CreateTable(analizador.TablaTransiciones1, analizador.Terminales1);
+                        try
+                        {
+                            pictureBox1.Image = Image.FromFile(@"D:\\" + analizador.ExprID1 + "_AFD.png");
+                            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
+                }
+            }
+
+        }
     }
 }

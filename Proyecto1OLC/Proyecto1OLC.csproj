@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="AFDMovement.cs" />
     <Compile Include="AFN.cs" />
+    <Compile Include="AnalizadorGenerico.cs" />
     <Compile Include="AnalizadorLexico.cs" />
     <Compile Include="Conjunto.cs" />
     <Compile Include="Errores.cs" />
