@@ -898,9 +898,9 @@ namespace Proyecto1OLC
                     }
                     if (conjunto.getConjunto().ElementAt(i).Equals('~')){
                         String[] EspaciadoSup = conjunto.getConjunto().Split('~');
-                        for (int w = 0; w + Int32.Parse(EspaciadoSup[0]) <= Int32.Parse(EspaciadoSup[1]); w++)
+                        for (int w = 0; (w + Int32.Parse(EspaciadoSup[0])) <= Int32.Parse(EspaciadoSup[1]); w++)
                         {
-                            conjunto.DefIntConjunto1.AddLast(Int32.Parse(EspaciadoSup[0]+w));
+                            conjunto.DefIntConjunto1.AddLast(Int32.Parse(EspaciadoSup[0])+w);
                         }
                     }
                     else if (conjunto.getConjunto().ElementAt(i).Equals(','))
@@ -922,14 +922,14 @@ namespace Proyecto1OLC
                     {
                         if (Char.IsLetterOrDigit(conjunto.getConjunto().ElementAt(0)))
                         {
-                            for (int i = 0; i + conjunto.getConjunto().ElementAt(0) < conjunto.getConjunto().ElementAt(2); i++)//No se si reconoce el límite dado orpor el char
+                            for (int i = 0; i + conjunto.getConjunto().ElementAt(0) <= conjunto.getConjunto().ElementAt(2); i++)//No se si reconoce el límite dado orpor el char
                             {
                                     conjunto.DefConjunto1.AddLast((char)(i + conjunto.getConjunto().ElementAt(0)));
                             }
                         }
                         else
                         {
-                            for (int i = 0; i + conjunto.getConjunto().ElementAt(0) < conjunto.getConjunto().ElementAt(2); i++)//No se si reconoce el límite dado orpor el char
+                            for (int i = 0; i + conjunto.getConjunto().ElementAt(0) <= conjunto.getConjunto().ElementAt(2); i++)//No se si reconoce el límite dado orpor el char
                             {
                                 if ((i + conjunto.getConjunto().ElementAt(0)) == 65)
                                 {
