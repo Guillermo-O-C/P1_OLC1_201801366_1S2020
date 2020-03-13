@@ -59,11 +59,13 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Lexema.cs" />
     <Compile Include="ListasAnalisis.cs" />
     <Compile Include="Nodo.cs" />
     <Compile Include="NodoAFN.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TerminalesTH.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="TransicionesAFD.cs" />
     <EmbeddedResource Include="Form1.resx">

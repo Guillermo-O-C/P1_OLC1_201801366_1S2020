@@ -13,13 +13,17 @@ namespace Proyecto1OLC
         private LinkedList<Token> Salida;
         private LinkedList<Conjunto> Conjuntos;
         private LinkedList<ExpresionRegular> ExpresionesRegulares;
+        private LinkedList<Lexema> Lexemas;
 
-        public ListasAnalisis(LinkedList<Errores> Error, LinkedList<Token> Salida, LinkedList<Conjunto> Conjuntos, LinkedList<ExpresionRegular> ExpresionesRegulares)
+        internal LinkedList<Lexema> Lexemas1 { get => Lexemas; set => Lexemas = value; }
+
+        public ListasAnalisis(LinkedList<Errores> Error, LinkedList<Token> Salida, LinkedList<Conjunto> Conjuntos, LinkedList<ExpresionRegular> ExpresionesRegulares, LinkedList<Lexema> Lexemas)
         {
             this.Error = Error;
             this.Salida = Salida;
             this.Conjuntos = Conjuntos;
             this.ExpresionesRegulares = ExpresionesRegulares;
+            this.Lexemas1 = Lexemas;
         }
 
         public LinkedList<Errores> getError()

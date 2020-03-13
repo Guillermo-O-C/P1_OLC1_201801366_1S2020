@@ -38,10 +38,11 @@ namespace Proyecto1OLC
         int estados;
         LinkedList<AnalizadorGenerico> Tablas;
         LinkedList<string> Terminales;
-        LinkedList<AFDMovement> AFD = new LinkedList<AFDMovement>();
-        LinkedList<LinkedList<NodoAFN>> States = new LinkedList<LinkedList<NodoAFN>>();
+        LinkedList<LinkedList<NodoAFN>> States;
         LinkedList<TransicionesAFD> TablaDeTransiciones;
-        LinkedList<int> Aceptacion = new LinkedList<int>();
+        LinkedList<int> Aceptacion;
+        LinkedList<TerminalesTH> TerminalesList;
+
         private void NuevaPestañaToolStripMenuItem_Click(object sender, EventArgs e)
         {
             con++;
@@ -140,6 +141,7 @@ namespace Proyecto1OLC
                     if(!Terminales.Contains(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2)))
                     {
                     Terminales.AddLast(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2));
+                    TerminalesList.AddLast(new TerminalesTH(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2), TerminalesTH.Tipo.cadena));
                     }
                     objeto.setValor(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2));
                     Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
@@ -149,8 +151,8 @@ namespace Proyecto1OLC
                     if (!Terminales.Contains(objeto.GetVal()))
                     {
                         Terminales.AddLast(objeto.GetVal());
-                    }
-                    
+                        TerminalesList.AddLast(new TerminalesTH(objeto.GetVal(), TerminalesTH.Tipo.conjunto));
+                    }                    
                     Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
                 }
                 nodos++;
@@ -317,7 +319,7 @@ namespace Proyecto1OLC
             Tablas = new LinkedList<AnalizadorGenerico>();
             AnalizadorLexico analizador = new AnalizadorLexico();
             ListasAnalisis resultado = analizador.escanear(GetRichTextBox().Text);
-            //GraphConjuntos(resultado.getConjuntos());
+            DefineConjuntos(resultado.getConjuntos());
             analizador.imprimiListaToken(resultado.getSalida());
             analizador.imprimiListaErrores(resultado.getError());
             treeView1.Nodes.Clear();
@@ -331,8 +333,8 @@ namespace Proyecto1OLC
                 Terminales = new LinkedList<string>();
                 Aceptacion = new LinkedList<int>();
                 TablaDeTransiciones = new LinkedList<TransicionesAFD>();
-                AFD = new LinkedList<AFDMovement>();
                 States = new LinkedList<LinkedList<NodoAFN>>();
+                TerminalesList = new LinkedList<TerminalesTH>();
                 ListasAnalisis expresiones = analizador.escanear(Expr.getExpresion());
                 LinkedList<Nodo> temporal = SetType(expresiones.getSalida());
                 temporal.AddFirst(new Nodo(Nodo.Tipo.Operador_Binario, new Token(Token.Tipo.Punto, ".", 0, 0), 0));
@@ -454,24 +456,11 @@ namespace Proyecto1OLC
             //Creacion de Nodos AFN
             if (Raiz.getValue().GetTipo().Equals("Concatenacion"))//Concatenacion
             {
-                /*
-                NodoAFN inicio = hijoIzq.getPrimero();
-                nodosAFN++;
-                NodoAFN join = hijoDer.getPrimero();
-                nodosAFN++;
-                NodoAFN fin = hijoDer.getUltimo();
-                nodosAFN++;
-                inicio.setLeft(join);
-                */
                 hijoIzq.getUltimo().setLeft(hijoDer.getPrimero().getLeft());
                 hijoIzq.getUltimo().setRight(hijoDer.getPrimero().getRight());
                 hijoIzq.getUltimo().setTransicionLeft(hijoDer.getPrimero().getTransicionLeft());
                 hijoIzq.getUltimo().setTransicionRight(hijoDer.getPrimero().getRransicionRight());
-                //hijoIzq.getUltimo().setLeft(hijoDer.getPrimero());
-                //LinkedList<int> Recorridos = new LinkedList<int>();
-                //JoinAFN(hijoIzq.getPrimero(),null, hijoDer.getPrimero(), Recorridos);
                 AFN Union = new AFN(hijoIzq.getPrimero(), hijoDer.getUltimo());
-                //GraphAFN(GenGraphAFN(hijoIzq.getPrimero()), "AFN"+hijoIzq.getPrimero().getID());
                 return Union;
             }
             else if (Raiz.getValue().GetTipo().Equals("Cerradura de Kleene"))//Asterisco
@@ -489,7 +478,6 @@ namespace Proyecto1OLC
                 inicio.setRight(fin);
                 inicio.setTransicionRight("Epsilon");
                 AFN Union = new AFN(inicio, fin);
-                //GraphAFN(GenGraphAFN(inicio), "AFN" + hijoIzq.getPrimero().getID());
                 return Union;
             }
             else if (Raiz.getValue().GetTipo().Equals("Disyunción"))//Disyunción
@@ -507,7 +495,6 @@ namespace Proyecto1OLC
                 hijoDer.getUltimo().setRight(fin);
                 hijoDer.getUltimo().setTransicionRight("Epsilon");
                 AFN Union = new AFN(inicio, fin);
-                //GraphAFN(GenGraphAFN(inicio), "AFN" + hijoIzq.getPrimero().getID());
                 return Union;
             }
             return null;
@@ -815,10 +802,164 @@ namespace Proyecto1OLC
                         {
 
                         }
+                        try
+                        {
+                            pictureBox2.Image = Image.FromFile(@"D:\\" + analizador.ExprID1 + "_AFN.png");
+                            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+                        }
+                        catch (Exception)
+                        {
+
+                        }
                     }
                 }
             }
 
         }
+
+        void EvaluarLexema(LinkedList<TransicionesAFD> Transiciones, LinkedList<TerminalesTH> TerminalList, string cadena, LinkedList<int> Aceptacion, int fila)
+        {
+            int iterador = 0;
+            int columna = 0;
+            //cadena += "#";
+            Char c;
+            int estado = 0;
+            for(int i = 0; i < cadena.Length; i++)
+            {
+                c = cadena.ElementAt(i);
+                columna++;
+                for (int e = 0; e < Transiciones.Count; e++)
+                {
+                    if (Transiciones.ElementAt(e).Conjunto == estado)
+                    {
+                        switch(TransicionType(TerminalList, Transiciones.ElementAt(i).Transicion))
+                        {
+                            case TerminalesTH.Tipo.cadena:
+                                if(CorrectStr(cadena, i, Transiciones.ElementAt(i).Transicion)){
+                                    //registra Token
+                                    i += cadena.Length;
+                                    estado = Transiciones.ElementAt(i).Llegada;
+                                }
+                                break;
+                            case TerminalesTH.Tipo.conjunto:
+                                if (CorrectChar(Transiciones.ElementAt(i).Transicion, c))
+                                {
+                                    //registra Token
+                                    estado = Transiciones.ElementAt(i).Llegada;
+                                }
+                                break;
+                            case TerminalesTH.Tipo.especial:
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        //registra error
+                    }
+                }
+            }
+        }
+
+        Boolean CorrectStr(string entrada, int iterador, string cadena)
+        {
+            for(int i =0; i < cadena.Length; i++)
+            {
+                if (!entrada.ElementAt(iterador).Equals(cadena.ElementAt(i)))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        Boolean CorrectChar(string conjuntoID, Char c)
+        {
+            return false;
+        }
+        TerminalesTH.Tipo TransicionType(LinkedList<TerminalesTH> TerminalList, string TerminalID)
+        {
+            for(int i =0; i< TerminalesList.Count; i++)
+            {
+                if (TerminalesList.ElementAt(i).TerminalID1.Equals(TerminalID))
+                {
+                    return TerminalesList.ElementAt(i).TipoTerminal1;
+                }
+            }
+            return 0;
+        }
+            
+        void DefineConjuntos(LinkedList<Conjunto> ListaConjuntos)
+        {
+            foreach(Conjunto conjunto in ListaConjuntos)
+            {
+                if (Char.IsDigit(conjunto.getConjunto().ElementAt(0))){
+                    int i = 0;
+                    while (Char.IsDigit(conjunto.getConjunto().ElementAt(i))){//Recorred todo el primer número
+                        i++;
+                    }
+                    if (conjunto.getConjunto().ElementAt(i).Equals('~')){
+                        String[] EspaciadoSup = conjunto.getConjunto().Split('~');
+                        for (int w = 0; w + Int32.Parse(EspaciadoSup[0]) <= Int32.Parse(EspaciadoSup[1]); w++)
+                        {
+                            conjunto.DefIntConjunto1.AddLast(Int32.Parse(EspaciadoSup[0]+w));
+                        }
+                    }
+                    else if (conjunto.getConjunto().ElementAt(i).Equals(','))
+                    {
+                        String[] EspaciadoSup = conjunto.getConjunto().Split(',');
+                        for (int w = 0; w < EspaciadoSup.Length; w++)
+                        {
+                            conjunto.DefIntConjunto1.AddLast(Int32.Parse(EspaciadoSup[w]));
+                        }
+                    }
+                }
+                else if (conjunto.getConjunto().ElementAt(0).Equals('\\'))
+                {
+                    //para los caracetres especiales
+                }
+                else
+                {
+                    if (conjunto.getConjunto().ElementAt(1).Equals('~'))//Rango
+                    {
+                        if (Char.IsLetterOrDigit(conjunto.getConjunto().ElementAt(0)))
+                        {
+                            for (int i = 0; i + conjunto.getConjunto().ElementAt(0) < conjunto.getConjunto().ElementAt(2); i++)//No se si reconoce el límite dado orpor el char
+                            {
+                                    conjunto.DefConjunto1.AddLast((char)(i + conjunto.getConjunto().ElementAt(0)));
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i + conjunto.getConjunto().ElementAt(0) < conjunto.getConjunto().ElementAt(2); i++)//No se si reconoce el límite dado orpor el char
+                            {
+                                if ((i + conjunto.getConjunto().ElementAt(0)) == 65)
+                                {
+                                    i += 25;
+                                }
+                                else if ((i + conjunto.getConjunto().ElementAt(0)) == 97)
+                                {
+                                    i += 25;
+                                }
+                                else
+                                {
+                                    conjunto.DefConjunto1.AddLast((char)(i + conjunto.getConjunto().ElementAt(0)));
+                                }
+                            }
+                        }                      
+                    }
+                    else if (conjunto.getConjunto().ElementAt(1).Equals(','))//Definido
+                    {
+                        String[] EspaciadoSup = conjunto.getConjunto().Split(',');
+                        for (int w = 0; w < EspaciadoSup.Length; w++)
+                        {
+                            conjunto.DefConjunto1.AddLast(EspaciadoSup[w].ElementAt(0));
+                        }
+                    }
+                }
+                //Los Rangos cambian si es Caracter Especial
+                
+            }
+        }
+
+        
     }
 }

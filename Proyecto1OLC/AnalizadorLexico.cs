@@ -13,6 +13,7 @@ namespace Proyecto1OLC
         private LinkedList<Token> Salida;
         private LinkedList<Conjunto> Conjuntos;
         private LinkedList<ExpresionRegular> ExpresionesRegulares;
+        private LinkedList<Lexema> LexemaList;
         private int estado;
         private int fila;
         private int columna;
@@ -21,10 +22,13 @@ namespace Proyecto1OLC
         private Boolean Lexemas;
         private int conjunto;
         private int expr;
+        private int lex;
         private String conjuntoID;
         private String conjuntoCONTENT;
         private String expresion;
         private String expID;
+        private String lexID;
+        private String lexContent;
 
         public ListasAnalisis escanear(String entrada)
         {
@@ -33,6 +37,7 @@ namespace Proyecto1OLC
             Error = new LinkedList<Errores>();
             Conjuntos = new LinkedList<Conjunto>();
             ExpresionesRegulares = new LinkedList<ExpresionRegular>();
+            LexemaList = new LinkedList<Lexema>();
             fila = 1;
             columna = 0;
             estado = 0;
@@ -44,11 +49,27 @@ namespace Proyecto1OLC
             conjuntoCONTENT = "";
             expresion = "";
             expID = "";
+            lex = 0;
+            lexID = "";
+            lexContent = "";
             Char c;
             for (int i = 0; i < entrada.Length - 1; i++)
             {
                 c = entrada.ElementAt(i);
                 columna++;
+                /*
+                if (conjunto == 4 && !Salida.Last().GetTipo().Equals("Identificador"))
+                {
+                    if(conjunto == 4 && !Salida.Last().GetTipo().Equals("Numero"))
+                    {
+                        conjuntoCONTENT += c;
+                    }
+                }
+                */
+                if (conjunto == 4)
+                {
+                    estado = 12;
+                }
                 switch (estado)
                 {
                     case 0:
@@ -75,12 +96,13 @@ namespace Proyecto1OLC
                             auxlex += c;
                             agregarToken(Token.Tipo.DosPuntos);
                             if (conjunto == 1) conjunto = 2;
+                            if (lex == 1) lex = 2;
                         }
                         else if (c.CompareTo(';') == 0)
                         {
                             auxlex += c;
                             columnaToken = columna;
-                            if (conjunto == 4)
+                            if (conjunto == 5)
                             {
                                 Conjuntos.AddLast(new Conjunto(conjuntoID, conjuntoCONTENT));
                                 conjuntoID = "";
@@ -94,6 +116,13 @@ namespace Proyecto1OLC
                                 expr = 0;
                                 expresion = "";
                                 expID = "";
+                            }
+                            if (lex==2)
+                            {
+                                LexemaList.AddLast(new Lexema(lexID, lexContent));
+                                lexID = "";
+                                lex = 0;
+                                lexContent = "";
                             }
                             agregarToken(Token.Tipo.PuntoYComa);
                         }
@@ -238,6 +267,10 @@ namespace Proyecto1OLC
                         if (c.CompareTo('"') == 0)
                         {
                             auxlex += c;
+                            if (lex == 2)
+                            {
+                                lexContent = auxlex;
+                            }
                             agregarToken(Token.Tipo.cadena);
                         }
                         else
@@ -350,19 +383,42 @@ namespace Proyecto1OLC
                             auxlex += c;
                         }
                         break;
+                    case 12:
+                        if (c.CompareTo(';') == 0)
+                        {
+                            //auxlex += c;
+                            conjunto = 5;
+                            estado = 0;
+                            i -= 1;
+                        }
+                        else
+                        {
+                            estado = 12;
+                            if(c.CompareTo(' ') == 0)
+                            {
+                                
+                            }
+                            else
+                            {
+                                conjuntoCONTENT += c;
+                            }
+                        }
+                        break;
                 }
             }
 
-            return new ListasAnalisis(Error, Salida, Conjuntos, ExpresionesRegulares);
+            return new ListasAnalisis(Error, Salida, Conjuntos, ExpresionesRegulares, LexemaList);
         }
 
 
         public void agregarToken(Token.Tipo tipo)
         {
+            /*
             if (conjunto == 4)
             {
                 conjuntoCONTENT += auxlex;
             }
+            */
             if (expr == 2)
             {
                 expresion += auxlex;
@@ -478,6 +534,11 @@ namespace Proyecto1OLC
                     {
                         expr = 1;
                         expID = auxlex;
+                    }
+                    if (lex == 0 && expr !=0)
+                    {
+                        lex = 1;
+                        lexID = auxlex;
                     }
                     agregarToken(Token.Tipo.Identificador);
                     break;
