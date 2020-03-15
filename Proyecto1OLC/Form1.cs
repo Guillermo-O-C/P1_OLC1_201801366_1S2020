@@ -42,6 +42,7 @@ namespace Proyecto1OLC
         LinkedList<TransicionesAFD> TablaDeTransiciones;
         LinkedList<int> Aceptacion;
         LinkedList<TerminalesTH> TerminalesList;
+        LinkedList<Conjunto> FileConjuntos;
 
         private void NuevaPestañaToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -316,10 +317,15 @@ namespace Proyecto1OLC
 
         private void AnalizarToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            ConsoleOutPut.Text = "";
+            pictureBox1.Image = null;
+            pictureBox2.Image = null;
             Tablas = new LinkedList<AnalizadorGenerico>();
+            FileConjuntos = new LinkedList<Conjunto>();
             AnalizadorLexico analizador = new AnalizadorLexico();
             ListasAnalisis resultado = analizador.escanear(GetRichTextBox().Text);
             DefineConjuntos(resultado.getConjuntos());
+            FileConjuntos = resultado.getConjuntos();
             analizador.imprimiListaToken(resultado.getSalida());
             analizador.imprimiListaErrores(resultado.getError());
             treeView1.Nodes.Clear();
@@ -363,7 +369,18 @@ namespace Proyecto1OLC
                 int es = TablaDeTransiciones.Count;
                 GrapfAFD(TablaDeTransiciones, Expr.getExpID());
                 printTransTable(TablaDeTransiciones, Expr.getExpID());
-                Tablas.AddLast(new AnalizadorGenerico(Expr.getExpID(), TablaDeTransiciones, Terminales));
+                Tablas.AddLast(new AnalizadorGenerico(Expr.getExpID(), TablaDeTransiciones, TerminalesList,Terminales, Aceptacion));
+            }
+            foreach(Lexema lexema in resultado.Lexemas1)
+            {
+                foreach(AnalizadorGenerico analizadorGenerico in Tablas)
+                {
+                    if (lexema.LexID.Equals(analizadorGenerico.ExprID1)){
+                        EvaluarLexema(analizadorGenerico.ExprID1, analizadorGenerico.TablaTransiciones1, analizadorGenerico.TerminalesTH1,
+                                      lexema.LexContent.Substring(1, lexema.LexContent.Length - 2), analizadorGenerico.Aceptacion1, lexema.Fila);
+                    }
+                }
+                
             }
         }
 
@@ -792,7 +809,7 @@ namespace Proyecto1OLC
             {
                 foreach(AnalizadorGenerico analizador in Tablas){
                     if (analizador.ExprID1.Equals(treeView1.SelectedNode.Text)){
-                        CreateTable(analizador.TablaTransiciones1, analizador.Terminales1);
+                        CreateTable(analizador.TablaTransiciones1, analizador.Termianles1);
                         try
                         {
                             pictureBox1.Image = Image.FromFile(@"D:\\" + analizador.ExprID1 + "_AFD.png");
@@ -817,48 +834,85 @@ namespace Proyecto1OLC
 
         }
 
-        void EvaluarLexema(LinkedList<TransicionesAFD> Transiciones, LinkedList<TerminalesTH> TerminalList, string cadena, LinkedList<int> Aceptacion, int fila)
+        void EvaluarLexema(string ExpID, LinkedList<TransicionesAFD> Transiciones, LinkedList<TerminalesTH> TerminalList, string cadena, LinkedList<int> Aceptacion, int fila)
         {
             int iterador = 0;
             int columna = 0;
             //cadena += "#";
             Char c;
-            int estado = 0;
-            for(int i = 0; i < cadena.Length; i++)
+            int estado = 1;
+            Boolean transitionmade = false;
+            while (iterador < cadena.Length)
             {
-                c = cadena.ElementAt(i);
                 columna++;
-                for (int e = 0; e < Transiciones.Count; e++)
+                c = cadena.ElementAt(iterador);
+                transitionmade = false;
+                foreach (TransicionesAFD transicionesAFD in Transiciones)
                 {
-                    if (Transiciones.ElementAt(e).Conjunto == estado)
+                    if (!transitionmade)
                     {
-                        switch(TransicionType(TerminalList, Transiciones.ElementAt(i).Transicion))
+                        if (transicionesAFD.Conjunto == estado)
                         {
-                            case TerminalesTH.Tipo.cadena:
-                                if(CorrectStr(cadena, i, Transiciones.ElementAt(i).Transicion)){
-                                    //registra Token
-                                    i += cadena.Length;
-                                    estado = Transiciones.ElementAt(i).Llegada;
-                                }
-                                break;
-                            case TerminalesTH.Tipo.conjunto:
-                                if (CorrectChar(Transiciones.ElementAt(i).Transicion, c))
-                                {
-                                    //registra Token
-                                    estado = Transiciones.ElementAt(i).Llegada;
-                                }
-                                break;
-                            case TerminalesTH.Tipo.especial:
-                                break;
+                            switch (TransicionType(TerminalList, transicionesAFD.Transicion))
+                            {
+                                case TerminalesTH.Tipo.cadena:
+                                    if (CorrectStr(cadena, iterador, transicionesAFD.Transicion))
+                                    {
+                                        //registra Token
+                                        iterador += transicionesAFD.Transicion.Length;
+                                        estado = transicionesAFD.Llegada;
+                                        transitionmade = true;
+                                    }
+                                    break;
+                                case TerminalesTH.Tipo.conjunto:
+                                    if (Char.IsDigit(c))
+                                    {
+                                        if (AllowedInteger(transicionesAFD.Transicion, int.Parse(c.ToString())))
+                                        {
+                                            //registra Token
+                                            iterador++;
+                                            estado = transicionesAFD.Llegada;
+                                            transitionmade = true;
+                                        }                                        
+                                    }else if (CorrectChar(transicionesAFD.Transicion, c))
+                                    {
+                                        //registra Token
+                                        iterador++;
+                                        estado = transicionesAFD.Llegada;
+                                        transitionmade = true;
+                                    } 
+                                    break;
+                                case TerminalesTH.Tipo.especial:
+                                    break;
+                                //not sure about the default clause
+                                default:
+                                    iterador = cadena.Length; //fin al ciclo
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            //registra error
                         }
                     }
-                    else
-                    {
-                        //registra error
-                    }
-                }
+                }                
+                if (!transitionmade)
+                {
+                    iterador = cadena.Length+1;
+                }                
+            }
+            if (Aceptacion.Contains(estado) && iterador==cadena.Length)
+            {
+                //Cadena Correcta
+                ConsoleOutPut.Text += "\n"+ ExpID + " aceptó la expresion \"" + cadena + "\"";
+            }
+            else
+            {
+                //Cadena incorrecta
+                ConsoleOutPut.Text += "\n" + ExpID + " no aceptó la expresion \"" + cadena + "\"";
             }
         }
+
 
         Boolean CorrectStr(string entrada, int iterador, string cadena)
         {
@@ -868,20 +922,47 @@ namespace Proyecto1OLC
                 {
                     return false;
                 }
+                iterador++;
             }
             return true;
         }
         Boolean CorrectChar(string conjuntoID, Char c)
         {
+            foreach(Conjunto conjunto in FileConjuntos){
+                if (conjunto.getID().Equals(conjuntoID))
+                {
+                    if (conjunto.DefConjunto1.Contains(c))
+                    {
+                        return true;
+                    }
+                }
+            }
             return false;
         }
+        
+        Boolean AllowedInteger(string conjuntoID, int c)
+            {
+                foreach (Conjunto conjunto in FileConjuntos)
+                {
+                    if (conjunto.getID().Equals(conjuntoID))
+                    {
+                        if (conjunto.DefIntConjunto1.Contains(c))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }        
+
         TerminalesTH.Tipo TransicionType(LinkedList<TerminalesTH> TerminalList, string TerminalID)
         {
-            for(int i =0; i< TerminalesList.Count; i++)
+            //cambie el TermianlesList, variable global, por TerminalList que es variable de ambiente
+            for(int i =0; i< TerminalList.Count; i++)
             {
-                if (TerminalesList.ElementAt(i).TerminalID1.Equals(TerminalID))
+                if (TerminalList.ElementAt(i).TerminalID1==TerminalID)
                 {
-                    return TerminalesList.ElementAt(i).TipoTerminal1;
+                    return TerminalList.ElementAt(i).TipoTerminal1;
                 }
             }
             return 0;
@@ -893,7 +974,7 @@ namespace Proyecto1OLC
             {
                 if (Char.IsDigit(conjunto.getConjunto().ElementAt(0))){
                     int i = 0;
-                    while (Char.IsDigit(conjunto.getConjunto().ElementAt(i))){//Recorred todo el primer número
+                    while (Char.IsDigit(conjunto.getConjunto().ElementAt(i))){//Recorrer todo el primer número
                         i++;
                     }
                     if (conjunto.getConjunto().ElementAt(i).Equals('~')){

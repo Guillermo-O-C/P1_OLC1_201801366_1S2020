@@ -119,7 +119,7 @@ namespace Proyecto1OLC
                             }
                             if (lex==2)
                             {
-                                LexemaList.AddLast(new Lexema(lexID, lexContent));
+                                LexemaList.AddLast(new Lexema(lexID, lexContent, fila));
                                 lexID = "";
                                 lex = 0;
                                 lexContent = "";

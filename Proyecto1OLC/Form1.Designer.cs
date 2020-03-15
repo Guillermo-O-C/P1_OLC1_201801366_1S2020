@@ -44,6 +44,7 @@
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.ConsoleOutPut = new System.Windows.Forms.RichTextBox();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgV1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -184,11 +185,23 @@
             this.tabPage1.Text = "AFD";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // ConsoleOutPut
+            // 
+            this.ConsoleOutPut.BackColor = System.Drawing.SystemColors.InactiveCaptionText;
+            this.ConsoleOutPut.ForeColor = System.Drawing.Color.Aqua;
+            this.ConsoleOutPut.Location = new System.Drawing.Point(12, 606);
+            this.ConsoleOutPut.Name = "ConsoleOutPut";
+            this.ConsoleOutPut.Size = new System.Drawing.Size(895, 315);
+            this.ConsoleOutPut.TabIndex = 7;
+            this.ConsoleOutPut.Text = "";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ClientSize = new System.Drawing.Size(1902, 933);
+            this.Controls.Add(this.ConsoleOutPut);
             this.Controls.Add(this.tabControl2);
             this.Controls.Add(this.treeView1);
             this.Controls.Add(this.dgV1);
@@ -198,7 +211,6 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
             this.Text = "Analizador Lexico";
-            this.TopMost = true;
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgV1)).EndInit();
@@ -229,6 +241,7 @@
         private System.Windows.Forms.TabControl tabControl2;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.RichTextBox ConsoleOutPut;
     }
 }
 
