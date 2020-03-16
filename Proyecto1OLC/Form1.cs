@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 
 namespace Proyecto1OLC
 {
@@ -43,7 +45,8 @@ namespace Proyecto1OLC
         LinkedList<int> Aceptacion;
         LinkedList<TerminalesTH> TerminalesList;
         LinkedList<Conjunto> FileConjuntos;
-
+        Document Tokens, Errors;
+        PdfPTable TablaTokens, TablaErrores;
         private void NuevaPestañaToolStripMenuItem_Click(object sender, EventArgs e)
         {
             con++;
@@ -55,7 +58,6 @@ namespace Proyecto1OLC
             tabControl1.TabPages.Add(tp);
 
         }
-
         private void AbrirArchivoToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
@@ -87,7 +89,6 @@ namespace Proyecto1OLC
             }
 
         }
-
         private void GuardarArchivoToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
@@ -111,7 +112,6 @@ namespace Proyecto1OLC
 
             }
         }
-
         LinkedList<Nodo> SetType(LinkedList<Token> lista)
         {
             LinkedList<Nodo> Ramas = new LinkedList<Nodo>();
@@ -160,7 +160,6 @@ namespace Proyecto1OLC
             }
             return Ramas;
         }
-
         Nodo GenerarArbol(LinkedList<Nodo> lista)
         {
             for (int i = 0; i < lista.Count; i++)
@@ -241,7 +240,6 @@ namespace Proyecto1OLC
             }
             return lista.ElementAt(0);
         }
-
         void ThompsonTree(Nodo raiz)
         {
             //Creo que debe ir antes para que vaya cambiando todo desde un inicio
@@ -280,7 +278,6 @@ namespace Proyecto1OLC
                 ThompsonTree(raiz.getRight());
             }
         }
-
         void CloneNode(Nodo raiz, Nodo Copia)
         {
             if (raiz.getLeft() != null)
@@ -306,7 +303,6 @@ namespace Proyecto1OLC
             */
 
         }
-
         Boolean IsLeftSon(Nodo raiz, Nodo hijo) {
             if (raiz.getLeft() == hijo)
             {
@@ -314,7 +310,6 @@ namespace Proyecto1OLC
             }
             return false;
         }
-
         private void AnalizarToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ConsoleOutPut.Text = "";
@@ -371,19 +366,61 @@ namespace Proyecto1OLC
                 printTransTable(TablaDeTransiciones, Expr.getExpID());
                 Tablas.AddLast(new AnalizadorGenerico(Expr.getExpID(), TablaDeTransiciones, TerminalesList,Terminales, Aceptacion));
             }
-            foreach(Lexema lexema in resultado.Lexemas1)
+            Tokens = new Document();
+            Errors = new Document();
+            PdfWriter.GetInstance(Tokens, new FileStream("D:\\TokensDeLexemas.pdf", FileMode.Create));
+            PdfWriter.GetInstance(Errors, new FileStream("D:\\ErroresDeLexemas.pdf", FileMode.Create));
+            Tokens.Open();
+            Errors.Open();
+            foreach (Lexema lexema in resultado.Lexemas1)
             {
-                foreach(AnalizadorGenerico analizadorGenerico in Tablas)
+
+                TablaTokens = new PdfPTable(5);
+                TablaErrores = new PdfPTable(3);
+                TablaTokens.WidthPercentage = 100;
+                PdfPCell TokenTableTitle = new PdfPCell(new Paragraph("Tokens"));
+                PdfPCell ErroresTableTitle = new PdfPCell(new Paragraph("Errores"));
+                TokenTableTitle.Colspan = 8;
+                TokenTableTitle.HorizontalAlignment = Element.ALIGN_CENTER;
+                TokenTableTitle.BackgroundColor = BaseColor.ORANGE;
+                TablaTokens.AddCell(TokenTableTitle);
+                ErroresTableTitle.Colspan = 8;
+                ErroresTableTitle.HorizontalAlignment = Element.ALIGN_CENTER;
+                ErroresTableTitle.BackgroundColor = BaseColor.ORANGE;
+                TablaErrores.AddCell(ErroresTableTitle);
+                Paragraph columna1 = new Paragraph("#", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph columna2 = new Paragraph("Nombre", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph columna3 = new Paragraph("Valor", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph columna4 = new Paragraph("Fila", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph columna5 = new Paragraph("Columna", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                TablaTokens.AddCell(columna1);
+                TablaTokens.AddCell(columna2);
+                TablaTokens.AddCell(columna3);
+                TablaTokens.AddCell(columna4);
+                TablaTokens.AddCell(columna5);
+                Paragraph columna22 = new Paragraph("ERROR", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph columna33 = new Paragraph("Columna", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph columna44 = new Paragraph("Fila", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                TablaErrores.AddCell(columna22);
+                TablaErrores.AddCell(columna33);
+                TablaErrores.AddCell(columna44);
+                foreach (AnalizadorGenerico analizadorGenerico in Tablas)
                 {
                     if (lexema.LexID.Equals(analizadorGenerico.ExprID1)){
+                        Tokens.Add(new Paragraph(analizadorGenerico.ExprID1 +" analizando "+lexema.LexContent));
+                        Errors.Add(new Paragraph(analizadorGenerico.ExprID1 + " analizando " + lexema.LexContent));
                         EvaluarLexema(analizadorGenerico.ExprID1, analizadorGenerico.TablaTransiciones1, analizadorGenerico.TerminalesTH1,
                                       lexema.LexContent.Substring(1, lexema.LexContent.Length - 2), analizadorGenerico.Aceptacion1, lexema.Fila);
                     }
                 }
-                
+                Tokens.Add(new Paragraph("\n \n"));
+                Errors.Add(new Paragraph("\n \n"));
+                Tokens.Add(TablaTokens);
+                Errors.Add(TablaErrores);
             }
+            Tokens.Close();
+            Errors.Close();
         }
-
         void Graficar(Nodo raiz, string nombre)
         {
             string entrada = "digraph G {\n nodesep=0.3;\n ranksep=0.2;\n    margin=0.1;\n   node [shape=circle];\n  edge [arrowsize=0.8];";
@@ -404,7 +441,6 @@ namespace Proyecto1OLC
             startInfo.Arguments = "-Tpng \"D:\\" + nombre + ".txt\" -o \"D:\\" + nombre + ".png\"";
             Process.Start(startInfo);
         }
-
         String NextNodos(Nodo Central)
         {
             String content = "";
@@ -422,7 +458,6 @@ namespace Proyecto1OLC
 
             return content;
         }
-
         AFN Thompson(Nodo Raiz)
         {
             AFN hijoIzq = null;
@@ -516,7 +551,6 @@ namespace Proyecto1OLC
             }
             return null;
         }
-
         String GenGraphAFN(NodoAFN raiz, LinkedList<int> Recorridos)
         {
             String content = "";
@@ -538,14 +572,12 @@ namespace Proyecto1OLC
             }
             return content;
         }
-
         LinkedList<NodoAFN> Mover(NodoAFN estado, string terminal)
         {
             LinkedList<NodoAFN> llegadas = new LinkedList<NodoAFN>();
             IrA(estado, terminal, llegadas);
             return llegadas;
         }
-
         void IrA(NodoAFN estado, String Transicion, LinkedList<NodoAFN> conjunto)
         {
             if (estado.getTransicionLeft().Equals(Transicion))
@@ -571,7 +603,6 @@ namespace Proyecto1OLC
                 }
             }
         }
-
         void AFN_Nodes(NodoAFN raiz, LinkedList<NodoAFN> Recorridos)
         {
             if (!Recorridos.Contains(raiz))
@@ -587,7 +618,6 @@ namespace Proyecto1OLC
                 }
             }
         }
-
         void Cerradura(LinkedList<NodoAFN> conjunto)
         {
             if (estados < 1)
@@ -647,8 +677,6 @@ namespace Proyecto1OLC
                 }
             }
         }
-        
-
         Boolean ExisteConjunto(LinkedList<NodoAFN> conjunto)
         {
             for(int i =0; i < States.Count; i++)
@@ -660,7 +688,6 @@ namespace Proyecto1OLC
             }
             return false;
         }
-
         int ConjuntoID(LinkedList<NodoAFN> conjunto)
         {
             for (int i = 0; i < States.Count; i++)
@@ -672,7 +699,6 @@ namespace Proyecto1OLC
             }
             return 0;
         }
-
         Boolean SameList(LinkedList<NodoAFN> First, LinkedList<NodoAFN> Second)
         {
             if (First.Count != Second.Count)
@@ -713,7 +739,6 @@ namespace Proyecto1OLC
             startInfo.Arguments = "-Tpng \"D:\\" + nombre + "_AFD.txt\" -o \"D:\\" + nombre + "_AFD.png\"";
             Process.Start(startInfo);
         }
-
         void printTransTable(LinkedList<TransicionesAFD> lista, string nombre)
         {
             try
@@ -749,7 +774,6 @@ namespace Proyecto1OLC
             {
             }
         }
-
         Boolean ExistingTransicion(TransicionesAFD nonlisted)
         {
             for(int i =0; i < TablaDeTransiciones.Count; i++)
@@ -762,7 +786,6 @@ namespace Proyecto1OLC
             }
             return false;
         }
-
         void CreateTable(LinkedList<TransicionesAFD> Tabla, LinkedList<string> TerminalesList)
         {
             DataTable dt = new DataTable();
@@ -802,7 +825,6 @@ namespace Proyecto1OLC
             }
             dgV1.DataSource = dt;
         }
-
         private void TreeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (treeView1.SelectedNode != null)
@@ -812,7 +834,7 @@ namespace Proyecto1OLC
                         CreateTable(analizador.TablaTransiciones1, analizador.Termianles1);
                         try
                         {
-                            pictureBox1.Image = Image.FromFile(@"D:\\" + analizador.ExprID1 + "_AFD.png");
+                            pictureBox1.Image = System.Drawing.Image.FromFile(@"D:\\" + analizador.ExprID1 + "_AFD.png");
                             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
                         }
                         catch (Exception)
@@ -821,7 +843,7 @@ namespace Proyecto1OLC
                         }
                         try
                         {
-                            pictureBox2.Image = Image.FromFile(@"D:\\" + analizador.ExprID1 + "_AFN.png");
+                            pictureBox2.Image = System.Drawing.Image.FromFile(@"D:\\" + analizador.ExprID1 + "_AFN.png");
                             pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
                         }
                         catch (Exception)
@@ -833,17 +855,17 @@ namespace Proyecto1OLC
             }
 
         }
-
         void EvaluarLexema(string ExpID, LinkedList<TransicionesAFD> Transiciones, LinkedList<TerminalesTH> TerminalList, string cadena, LinkedList<int> Aceptacion, int fila)
         {
             int iterador = 0;
-            int columna = 0;
             //cadena += "#";
             Char c;
             int estado = 1;
+            int token_number = 1;
             Boolean transitionmade = false;
             while (iterador < cadena.Length)
             {
+                int columna = 0;
                 columna++;
                 c = cadena.ElementAt(iterador);
                 transitionmade = false;
@@ -859,9 +881,16 @@ namespace Proyecto1OLC
                                     if (CorrectStr(cadena, iterador, transicionesAFD.Transicion))
                                     {
                                         //registra Token
+                                        Console.WriteLine("TOKEN Nombre: Cadena Valor: " + transicionesAFD.Transicion + " Columna: " + columna + " Fila: " + fila);
+                                        TablaTokens.AddCell(token_number.ToString());
+                                        TablaTokens.AddCell("Cadena");
+                                        TablaTokens.AddCell(transicionesAFD.Transicion);
+                                        TablaTokens.AddCell(columna.ToString());
+                                        TablaTokens.AddCell(fila.ToString());
                                         iterador += transicionesAFD.Transicion.Length;
                                         estado = transicionesAFD.Llegada;
                                         transitionmade = true;
+                                        token_number++;
                                     }
                                     break;
                                 case TerminalesTH.Tipo.conjunto:
@@ -870,16 +899,30 @@ namespace Proyecto1OLC
                                         if (AllowedInteger(transicionesAFD.Transicion, int.Parse(c.ToString())))
                                         {
                                             //registra Token
+                                            Console.WriteLine("TOKEN Nombre: " + transicionesAFD.Transicion +" Valor: "+c+" Columna: "+columna+" Fila: "+fila);
+                                            TablaTokens.AddCell(token_number.ToString());
+                                            TablaTokens.AddCell(transicionesAFD.Transicion);
+                                            TablaTokens.AddCell(c.ToString());
+                                            TablaTokens.AddCell(columna.ToString());
+                                            TablaTokens.AddCell(fila.ToString());
                                             iterador++;
                                             estado = transicionesAFD.Llegada;
                                             transitionmade = true;
+                                            token_number++;
                                         }                                        
                                     }else if (CorrectChar(transicionesAFD.Transicion, c))
                                     {
                                         //registra Token
+                                        Console.WriteLine("TOKEN Nombre: " + transicionesAFD.Transicion + " Valor: " + c + " Columna: " + columna + " Fila: " + fila);
                                         iterador++;
+                                        TablaTokens.AddCell(token_number.ToString());
+                                        TablaTokens.AddCell(transicionesAFD.Transicion);
+                                        TablaTokens.AddCell(c.ToString());
+                                        TablaTokens.AddCell(columna.ToString());
+                                        TablaTokens.AddCell(fila.ToString());
                                         estado = transicionesAFD.Llegada;
                                         transitionmade = true;
+                                        token_number++;
                                     } 
                                     break;
                                 case TerminalesTH.Tipo.especial:
@@ -887,6 +930,10 @@ namespace Proyecto1OLC
                                 //not sure about the default clause
                                 default:
                                     iterador = cadena.Length; //fin al ciclo
+                                    Console.WriteLine("ERROR Nombre: " + transicionesAFD.Transicion + " Valor: " + c + " Columna: " + columna + " Fila: " + fila);
+                                    TablaErrores.AddCell(c.ToString());
+                                    TablaErrores.AddCell(columna.ToString());
+                                    TablaErrores.AddCell(fila.ToString());
                                     break;
                             }
                         }
@@ -898,6 +945,10 @@ namespace Proyecto1OLC
                 }                
                 if (!transitionmade)
                 {
+                    Console.WriteLine("ERROR " + CuttedString(iterador, cadena) +" Columna: " + columna + " Fila: " + fila);
+                    TablaErrores.AddCell(CuttedString(iterador, cadena));
+                    TablaErrores.AddCell(columna.ToString());
+                    TablaErrores.AddCell(fila.ToString());
                     iterador = cadena.Length+1;
                 }                
             }
@@ -912,8 +963,6 @@ namespace Proyecto1OLC
                 ConsoleOutPut.Text += "\n" + ExpID + " no aceptó la expresion \"" + cadena + "\"";
             }
         }
-
-
         Boolean CorrectStr(string entrada, int iterador, string cadena)
         {
             for(int i =0; i < cadena.Length; i++)
@@ -939,7 +988,6 @@ namespace Proyecto1OLC
             }
             return false;
         }
-        
         Boolean AllowedInteger(string conjuntoID, int c)
             {
                 foreach (Conjunto conjunto in FileConjuntos)
@@ -954,7 +1002,6 @@ namespace Proyecto1OLC
                 }
                 return false;
             }        
-
         TerminalesTH.Tipo TransicionType(LinkedList<TerminalesTH> TerminalList, string TerminalID)
         {
             //cambie el TermianlesList, variable global, por TerminalList que es variable de ambiente
@@ -967,7 +1014,15 @@ namespace Proyecto1OLC
             }
             return 0;
         }
-            
+        string CuttedString(int iterador, string entrada)
+        {
+            string cadena = "";
+            for(int i = iterador; i< entrada.Length; i++)
+            {
+                cadena += entrada.ElementAt(i);
+            }
+            return cadena;
+        }
         void DefineConjuntos(LinkedList<Conjunto> ListaConjuntos)
         {
             foreach(Conjunto conjunto in ListaConjuntos)
@@ -1041,6 +1096,5 @@ namespace Proyecto1OLC
             }
         }
 
-        
     }
 }

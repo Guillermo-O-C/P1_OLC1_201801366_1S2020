@@ -22,5 +22,6 @@ namespace Proyecto1OLC
         internal Tipo TipoTerminal1 { get => TipoTerminal; set => TipoTerminal = value; }
 
         public enum Tipo { cadena, conjunto, especial};
+        
     }
 }
