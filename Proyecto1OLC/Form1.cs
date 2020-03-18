@@ -114,51 +114,158 @@ namespace Proyecto1OLC
         }
         LinkedList<Nodo> SetType(LinkedList<Token> lista)
         {
+            Boolean TodoFinalizado = false;
             LinkedList<Nodo> Ramas = new LinkedList<Nodo>();
             foreach (Token objeto in lista)
             {
-                if ("Concatenacion".Equals(objeto.GetTipo()))
+                if (!TodoFinalizado)
                 {
-                    Ramas.AddLast(new Nodo(Nodo.Tipo.Operador_Binario, objeto, nodos));
-                }
-                else if ("Disyunción".Equals(objeto.GetTipo()))
-                {
-                    Ramas.AddLast(new Nodo(Nodo.Tipo.Operador_Binario, objeto, nodos));
-                }
-                else if ("Cerradura de Kleene".Equals(objeto.GetTipo()))
-                {
-                    Ramas.AddLast(new Nodo(Nodo.Tipo.Operador_Unario, objeto, nodos));
-                }
-                else if ("Signo de Interrogacion".Equals(objeto.GetTipo()))
-                {
-                    Ramas.AddLast(new Nodo(Nodo.Tipo.Operador_Unario, objeto, nodos));
-                }
-                else if ("Simbolo Suma".Equals(objeto.GetTipo()))
-                {
-                    Ramas.AddLast(new Nodo(Nodo.Tipo.Operador_Unario, objeto, nodos));
-                }
-                else if ("Cadena".Equals(objeto.GetTipo()))
-                {
-                    if(!Terminales.Contains(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2)))
+                    if ("Concatenacion".Equals(objeto.GetTipo()))
                     {
-                    Terminales.AddLast(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2));
-                    TerminalesList.AddLast(new TerminalesTH(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2), TerminalesTH.Tipo.cadena));
+                        Ramas.AddLast(new Nodo(Nodo.Tipo.Operador_Binario, objeto, nodos));
                     }
-                    objeto.setValor(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2));
-                    Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
-                }
-                else if ("Identificador".Equals(objeto.GetTipo()))
-                {
-                    if (!Terminales.Contains(objeto.GetVal()))
+                    else if ("Disyunción".Equals(objeto.GetTipo()))
                     {
-                        Terminales.AddLast(objeto.GetVal());
-                        TerminalesList.AddLast(new TerminalesTH(objeto.GetVal(), TerminalesTH.Tipo.conjunto));
-                    }                    
-                    Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
+                        Ramas.AddLast(new Nodo(Nodo.Tipo.Operador_Binario, objeto, nodos));
+                    }
+                    else if ("Cerradura de Kleene".Equals(objeto.GetTipo()))
+                    {
+                        Ramas.AddLast(new Nodo(Nodo.Tipo.Operador_Unario, objeto, nodos));
+                    }
+                    else if ("Signo de Interrogacion".Equals(objeto.GetTipo()))
+                    {
+                        Ramas.AddLast(new Nodo(Nodo.Tipo.Operador_Unario, objeto, nodos));
+                    }
+                    else if ("Simbolo Suma".Equals(objeto.GetTipo()))
+                    {
+                        Ramas.AddLast(new Nodo(Nodo.Tipo.Operador_Unario, objeto, nodos));
+                    }
+                    else if ("Cadena".Equals(objeto.GetTipo()))
+                    {
+                        if (!Terminales.Contains(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2)))
+                        {
+                            Terminales.AddLast(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2));
+                            TerminalesList.AddLast(new TerminalesTH(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2), TerminalesTH.Tipo.cadena));
+                        }
+                        objeto.setValor(objeto.GetVal().Substring(1, objeto.GetVal().Length - 2));
+                        Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
+                    }
+                    else if ("Identificador".Equals(objeto.GetTipo()))
+                    {
+                        if (!Terminales.Contains(objeto.GetVal()))
+                        {
+                            Terminales.AddLast(objeto.GetVal());
+                            TerminalesList.AddLast(new TerminalesTH(objeto.GetVal(), TerminalesTH.Tipo.conjunto));
+                        }
+                        Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
+                    }
+                    else if ("Salto".Equals(objeto.GetTipo()))
+                    {
+                        if (!Terminales.Contains(objeto.GetVal()))
+                        {
+                            Terminales.AddLast(objeto.GetVal());
+                            TerminalesList.AddLast(new TerminalesTH(objeto.GetVal(), TerminalesTH.Tipo.especial));
+                        }
+                        Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
+                    }
+                    else if ("Tabulacion".Equals(objeto.GetTipo()))
+                    {
+                        if (!Terminales.Contains(objeto.GetVal()))
+                        {
+                            Terminales.AddLast(objeto.GetVal());
+                            TerminalesList.AddLast(new TerminalesTH(objeto.GetVal(), TerminalesTH.Tipo.especial));
+                        }
+                        Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
+                    }
+                    else if ("Comilla Simple".Equals(objeto.GetTipo()))
+                    {
+                        if (!Terminales.Contains(objeto.GetVal()))
+                        {
+                            Terminales.AddLast(objeto.GetVal());
+                            TerminalesList.AddLast(new TerminalesTH(objeto.GetVal(), TerminalesTH.Tipo.especial));
+                        }
+                        Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
+                    }
+                    else if ("Comilla Doble".Equals(objeto.GetTipo()))
+                    {
+                        if (!Terminales.Contains(objeto.GetVal()))
+                        {
+                            Terminales.AddLast(objeto.GetVal());
+                            TerminalesList.AddLast(new TerminalesTH(objeto.GetVal(), TerminalesTH.Tipo.especial));
+                        }
+                        Ramas.AddLast(new Nodo(Nodo.Tipo.Terminal, objeto, nodos));
+                    }
+                    else if ("Todo Begin".Equals(objeto.GetTipo()))
+                    {
+                        Ramas.AddLast(ProcessTodo(objeto, lista));
+                        TodoFinalizado = true;
+                    }
+                    nodos++;
+                }else if("Todo End".Equals(objeto.GetTipo()))
+                {
+                    TodoFinalizado = false;
                 }
-                nodos++;
             }
             return Ramas;
+        }
+        int NodoID(Token begin, LinkedList<Token> lista)
+        {
+            for (int i = 0; i < lista.Count; i++)
+            {
+                if (lista.ElementAt(i).Equals(begin))
+                {
+                    return i;
+                }
+            }
+            return 0;
+        }
+        int FindTodoEnd(Token begin, LinkedList<Token> lista)
+        {
+            for (int i = 0; i < lista.Count; i++)
+            {
+                if (lista.ElementAt(i).GetTipo().Equals("Todo End"))
+                {
+                    return i;
+                }
+            }
+            return 0;
+        }
+        Nodo ProcessTodo(Token begin, LinkedList<Token> lista)
+        {
+            int id = NodoID(begin, lista);
+            int end = FindTodoEnd(begin, lista);
+            LinkedList<Nodo> Hojas = new LinkedList<Nodo>();
+            for (int i = id+1; i < end; i++)
+            {
+                if ("Cadena".Equals(lista.ElementAt(i).GetTipo()))
+                {
+                    if (!Terminales.Contains(lista.ElementAt(i).GetVal()))
+                    {
+                        Terminales.AddLast(lista.ElementAt(i).GetVal());
+                        TerminalesList.AddLast(new TerminalesTH(lista.ElementAt(i).GetVal(), TerminalesTH.Tipo.cadena));
+                    }
+                    lista.ElementAt(i).setValor(lista.ElementAt(i).GetVal());
+                    Hojas.AddLast(new Nodo(Nodo.Tipo.Terminal, lista.ElementAt(i), nodos));
+                    nodos++;
+                }
+                else
+                {
+                    if (!Terminales.Contains(lista.ElementAt(i).GetVal()))
+                    {
+                        Terminales.AddLast(lista.ElementAt(i).GetVal());
+                        TerminalesList.AddLast(new TerminalesTH(lista.ElementAt(i).GetVal(), TerminalesTH.Tipo.especial));
+                    }
+                    Hojas.AddLast(new Nodo(Nodo.Tipo.Terminal, lista.ElementAt(i), nodos));
+                    nodos++;
+                }
+            }
+            int hojasSize = Hojas.Count;
+            for(int i =0; i < hojasSize-1; i++)
+            {
+                Hojas.AddFirst(new Nodo(Nodo.Tipo.Operador_Binario, new Token(Token.Tipo.Punto, ".", 0, 0), nodos));
+                nodos++;
+            }
+            return GenerarArbol(Hojas);
         }
         Nodo GenerarArbol(LinkedList<Nodo> lista)
         {
@@ -473,6 +580,50 @@ namespace Proyecto1OLC
                 Console.WriteLine(hijoDer.getPrimero().getID());
             }
             if (Raiz.getValue().GetTipo().Equals("Cadena"))
+            {
+                NodoAFN inicio = new NodoAFN(nodosAFN);
+                nodosAFN++;
+                NodoAFN fin = new NodoAFN(nodosAFN);
+                nodosAFN++;
+                inicio.setLeft(fin);
+                inicio.setTransicionLeft(Raiz.getValue().GetVal());
+                AFN Union = new AFN(inicio, fin);
+                return Union;
+            }
+            if (Raiz.getValue().GetTipo().Equals("Salto"))
+            {
+                NodoAFN inicio = new NodoAFN(nodosAFN);
+                nodosAFN++;
+                NodoAFN fin = new NodoAFN(nodosAFN);
+                nodosAFN++;
+                inicio.setLeft(fin);
+                inicio.setTransicionLeft(Raiz.getValue().GetVal());
+                AFN Union = new AFN(inicio, fin);
+                return Union;
+            }
+            if (Raiz.getValue().GetTipo().Equals("Tabulacion"))
+            {
+                NodoAFN inicio = new NodoAFN(nodosAFN);
+                nodosAFN++;
+                NodoAFN fin = new NodoAFN(nodosAFN);
+                nodosAFN++;
+                inicio.setLeft(fin);
+                inicio.setTransicionLeft(Raiz.getValue().GetVal());
+                AFN Union = new AFN(inicio, fin);
+                return Union;
+            }
+            if (Raiz.getValue().GetTipo().Equals("Comilla Simple"))
+            {
+                NodoAFN inicio = new NodoAFN(nodosAFN);
+                nodosAFN++;
+                NodoAFN fin = new NodoAFN(nodosAFN);
+                nodosAFN++;
+                inicio.setLeft(fin);
+                inicio.setTransicionLeft(Raiz.getValue().GetVal());
+                AFN Union = new AFN(inicio, fin);
+                return Union;
+            }
+            if (Raiz.getValue().GetTipo().Equals("Comilla Doble"))
             {
                 NodoAFN inicio = new NodoAFN(nodosAFN);
                 nodosAFN++;
@@ -923,9 +1074,34 @@ namespace Proyecto1OLC
                                         estado = transicionesAFD.Llegada;
                                         transitionmade = true;
                                         token_number++;
-                                    } 
+                                    }else if(CorrectSpcConj(transicionesAFD.Transicion, c)){
+                                        //registra Token
+                                        Console.WriteLine("TOKEN Nombre: " + transicionesAFD.Transicion + " Valor: " + c + " Columna: " + columna + " Fila: " + fila);
+                                        iterador++;
+                                        TablaTokens.AddCell(token_number.ToString());
+                                        TablaTokens.AddCell(transicionesAFD.Transicion);
+                                        TablaTokens.AddCell(c.ToString());
+                                        TablaTokens.AddCell(columna.ToString());
+                                        TablaTokens.AddCell(fila.ToString());
+                                        estado = transicionesAFD.Llegada;
+                                        transitionmade = true;
+                                        token_number++;
+                                    }
                                     break;
                                 case TerminalesTH.Tipo.especial:
+                                        if(CorrectSpcChar(transicionesAFD.Transicion, c))
+                                        {
+                                            Console.WriteLine("TOKEN Nombre: " + transicionesAFD.Transicion + " Valor: " + c + " Columna: " + columna + " Fila: " + fila);
+                                            iterador++;
+                                            TablaTokens.AddCell(token_number.ToString());
+                                            TablaTokens.AddCell(transicionesAFD.Transicion);
+                                            TablaTokens.AddCell(c.ToString());
+                                            TablaTokens.AddCell(columna.ToString());
+                                            TablaTokens.AddCell(fila.ToString());
+                                            estado = transicionesAFD.Llegada;
+                                            transitionmade = true;
+                                            token_number++;
+                                        }                                        
                                     break;
                                 //not sure about the default clause
                                 default:
@@ -1002,6 +1178,67 @@ namespace Proyecto1OLC
                 }
                 return false;
             }        
+        Boolean CorrectSpcChar(string transicion, char c)
+        {
+            if (transicion.Equals("\\t"))
+            {
+                if (c.CompareTo('\t')==0){
+                    return true;
+                }
+            }else if (transicion.Equals("\\\""))
+            {
+                if (c.CompareTo('"')==0){
+                    return true;
+                }
+            }else if (transicion.Equals("\\\'"))
+            {
+                if (c.CompareTo('\'') == 0)
+                {
+                    return true;
+                }
+            }
+            else if (transicion.Equals("\\n"))
+            {
+                if (c.CompareTo('\n') == 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        Boolean CorrectSpcConj(string conjuntoID, char c)
+        {
+            foreach (Conjunto conjunto in FileConjuntos)
+            {
+                if (conjunto.getID().Equals(conjuntoID))
+                {
+                    if (c.CompareTo('\n') == 0)
+                    {
+                        if (conjunto.SpcConjunto1.Contains("\\n")){
+                            return true;
+                        }
+                    }else if (c.CompareTo('\t') == 0)
+                    {
+                        if (conjunto.SpcConjunto1.Contains("\\t")){
+                            return true;
+                        }
+                    }
+                    else if(c.CompareTo('"') == 0)
+                    {
+                        if (conjunto.SpcConjunto1.Contains("\\\"")){
+                            return true;
+                        }
+                    }
+                    else if(c.CompareTo('\'') == 0)
+                    {
+                        if (conjunto.SpcConjunto1.Contains("\\\'")){
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
         TerminalesTH.Tipo TransicionType(LinkedList<TerminalesTH> TerminalList, string TerminalID)
         {
             //cambie el TermianlesList, variable global, por TerminalList que es variable de ambiente
@@ -1050,7 +1287,20 @@ namespace Proyecto1OLC
                 }
                 else if (conjunto.getConjunto().ElementAt(0).Equals('\\'))
                 {
-                    //para los caracetres especiales
+                    String[] EspaciadoSup = conjunto.getConjunto().Split(',');
+                    for (int w = 0; w < EspaciadoSup.Length; w++)
+                    {
+                        if (EspaciadoSup[w].ElementAt(1).Equals('t'))
+                        {
+                            conjunto.SpcConjunto1.AddLast("\\t");
+                        }else if (EspaciadoSup[w].ElementAt(1).Equals('n')){
+                            conjunto.SpcConjunto1.AddLast("\\n");
+                        }else if (EspaciadoSup[w].ElementAt(1).Equals('"')){
+                            conjunto.SpcConjunto1.AddLast("\\\"");
+                        }else if (EspaciadoSup[w].ElementAt(1).Equals('\'')){
+                            conjunto.SpcConjunto1.AddLast("\\\'");
+                        }
+                    }                    
                 }
                 else
                 {

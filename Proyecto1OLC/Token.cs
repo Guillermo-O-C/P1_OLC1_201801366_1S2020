@@ -31,7 +31,13 @@ namespace Proyecto1OLC
             cadena,
             coma,
             aceptacion,
-            Epsilon
+            Epsilon,
+            Salto,
+            Tabulacion,
+            ComillaSimple, 
+            ComillaDoble,
+            TodoBegin,
+            TodoEnd
         }
 
         private Tipo tipoToken;
@@ -119,6 +125,18 @@ namespace Proyecto1OLC
                     return "Simbolo Aceptación";
                 case Tipo.Epsilon:
                     return "Epsilon";
+                case Tipo.Salto:
+                    return "Salto";
+                case Tipo.Tabulacion:
+                    return "Tabulacion";
+                case Tipo.ComillaSimple:
+                    return "Comilla Simple";
+                case Tipo.ComillaDoble:
+                    return "Comilla Doble";
+                case Tipo.TodoBegin:
+                    return "Todo Begin";
+                case Tipo.TodoEnd:
+                    return "Todo End";
                 default:
                     return "desconocido";
             }
@@ -172,8 +190,20 @@ namespace Proyecto1OLC
                     return 21;
                 case Tipo.Epsilon:
                     return 22;
-                default:
+                case Tipo.Salto:
                     return 23;
+                case Tipo.Tabulacion:
+                    return 24;
+                case Tipo.ComillaSimple:
+                    return 25;
+                case Tipo.ComillaDoble:
+                    return 26;
+                case Tipo.TodoBegin:
+                    return 27;
+                case Tipo.TodoEnd:
+                    return 28;
+                default:
+                    return 29;
             }
         }
 

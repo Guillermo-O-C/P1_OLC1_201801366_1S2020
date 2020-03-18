@@ -14,11 +14,13 @@ namespace Proyecto1OLC
         private Tipo listType;
         private LinkedList<Char> DefConjunto;
         private LinkedList<int> DefIntConjunto;
+        private LinkedList<string> SpcConjunto;
 
         public enum Tipo {ConjuntoChar, ConjuntoInt};
         public LinkedList<char> DefConjunto1 { get => DefConjunto; set => DefConjunto = value; }
         public LinkedList<int> DefIntConjunto1 { get => DefIntConjunto; set => DefIntConjunto = value; }
         internal Tipo ListType { get => listType; set => listType = value; }
+        public LinkedList<string> SpcConjunto1 { get => SpcConjunto; set => SpcConjunto = value; }
 
         public Conjunto(String ID, String conjunto)
         {
@@ -26,6 +28,7 @@ namespace Proyecto1OLC
             this.conjunto = conjunto;
             this.DefConjunto1 = new LinkedList<char>();
             this.DefIntConjunto1 = new LinkedList<int>();
+            this.SpcConjunto1 = new LinkedList<string>();
         }
 
         public String getID()

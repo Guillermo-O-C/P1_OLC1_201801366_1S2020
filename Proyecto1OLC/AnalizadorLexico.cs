@@ -210,6 +210,18 @@ namespace Proyecto1OLC
                             columnaToken = columna;
                             estado = 10;
                         }
+                        else if (c.CompareTo('\\') == 0)
+                        {
+                            auxlex += c;
+                            columnaToken = columna;
+                            estado = 13;
+                        }
+                        else if (c.CompareTo('[') == 0)
+                        {
+                            auxlex += c;
+                            columnaToken = columna;
+                            estado = 14;
+                        }
                         else if (c.CompareTo('\n') == 0)
                         {
                             fila++;
@@ -404,6 +416,129 @@ namespace Proyecto1OLC
                             }
                         }
                         break;
+                    case 13://Caracteres Especiales
+                        if (c.CompareTo('n') == 0)
+                        {
+                            auxlex += c;
+                            agregarToken(Token.Tipo.Salto);
+                        }
+                        else if (c.CompareTo('\'') == 0)
+                        {
+                            auxlex += c;
+                            agregarToken(Token.Tipo.ComillaSimple);
+                        }
+                        else if (c.CompareTo('"') == 0)
+                        {
+                            auxlex += c;
+                            agregarToken(Token.Tipo.ComillaDoble);
+                        }
+                        else if (c.CompareTo('t') == 0)
+                        {
+                            auxlex += c;
+                            agregarToken(Token.Tipo.Tabulacion);
+                        }
+                        else
+                        {
+                            i -= 1;
+                            Console.WriteLine("Error Léxico con " + c);
+                            agregarError(fila, columna, auxlex, "Desconocido");
+                            agregarError(fila, columna, c.ToString(), "Desconocido");
+                            estado = 0;
+                        }
+                        break;
+                    case 14://Todo //1
+                        if (c.CompareTo(':')==0)
+                        {
+                            auxlex += c;
+                            agregarToken(Token.Tipo.TodoBegin);
+                            estado = 15;
+                        }
+                        break;
+                    case 15://2
+                        if(c.CompareTo('\\') == 0 && entrada.ElementAt(i + 1).CompareTo('t') == 0)
+                        {
+                            if (auxlex != "")
+                            {
+                                agregarToken(Token.Tipo.cadena);
+                                estado = 17;
+                            }
+                            auxlex = "\\t";
+                            agregarToken(Token.Tipo.Tabulacion);
+                            i+= 1;
+                            estado = 15;
+                        }else if (c.CompareTo('\\') == 0 && entrada.ElementAt(i + 1).CompareTo('\'') == 0)
+                        {
+                            if (auxlex != "")
+                            {
+                                agregarToken(Token.Tipo.cadena);
+                            }
+                            auxlex = "\\\'";
+                            agregarToken(Token.Tipo.ComillaSimple);
+                            i += 1;
+                            estado = 15;
+                        }
+                        else if (c.CompareTo('\\') == 0 && entrada.ElementAt(i + 1).CompareTo('"') == 0)
+                        {
+                            if (auxlex != "")
+                            {
+                                agregarToken(Token.Tipo.cadena);
+                            }
+                            auxlex = "\\\"";
+                            agregarToken(Token.Tipo.ComillaDoble);
+                            i += 1;
+                            estado = 15;
+                        }
+                        else if (c.CompareTo(':') == 0 && entrada.ElementAt(i + 1).CompareTo(']') == 0)
+                        {
+                            if (auxlex != "")
+                            {
+                                agregarToken(Token.Tipo.cadena);
+                            }
+                            auxlex = ":]";
+                            agregarToken(Token.Tipo.TodoEnd);
+                            i += 1;
+                        }
+                        else
+                        {
+                            auxlex += c;
+                        }
+                        break;
+                        /*case 15://Todo Fin
+                            if (c.CompareTo(':') == 0 && entrada.ElementAt(i+1).CompareTo(']') == 0)
+                            {
+                                auxlex += entrada.ElementAt(i + 1);
+                                agregarToken(Token.Tipo.TodoEnd);
+                                i += 1;
+                            }else if (c.CompareTo('n') == 0)
+                            {
+                                auxlex += c;
+                                agregarToken(Token.Tipo.Salto);
+                            }
+                            else if (c.CompareTo('\'') == 0)
+                            {
+                                auxlex += c;
+                                agregarToken(Token.Tipo.ComillaSimple);
+                            }
+                            else if (c.CompareTo('"') == 0)
+                            {
+                                auxlex += c;
+                                agregarToken(Token.Tipo.ComillaDoble);
+                            }
+                            else if (c.CompareTo('t') == 0)
+                            {
+                                auxlex += c;
+                                agregarToken(Token.Tipo.Tabulacion);
+                            }
+                            else
+                            {
+                                i -= 1;
+                                Console.WriteLine("Error Léxico con " + c);
+                                agregarError(fila, columna, auxlex, "Desconocido");
+                                agregarError(fila, columna, c.ToString(), "Desconocido");
+                                estado = 0;
+                            }
+                            break;
+                            */
                 }
             }
 
