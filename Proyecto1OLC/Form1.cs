@@ -498,8 +498,8 @@ namespace Proyecto1OLC
                 Paragraph columna1 = new Paragraph("#", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
                 Paragraph columna2 = new Paragraph("Nombre", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
                 Paragraph columna3 = new Paragraph("Valor", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
-                Paragraph columna4 = new Paragraph("Fila", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
-                Paragraph columna5 = new Paragraph("Columna", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph columna4 = new Paragraph("Columna", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph columna5 = new Paragraph("Fila", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
                 TablaTokens.AddCell(columna1);
                 TablaTokens.AddCell(columna2);
                 TablaTokens.AddCell(columna3);
@@ -1016,8 +1016,7 @@ namespace Proyecto1OLC
             Boolean transitionmade = false;
             while (iterador < cadena.Length)
             {
-                int columna = 0;
-                columna++;
+                int columna = iterador + 1;
                 c = cadena.ElementAt(iterador);
                 transitionmade = false;
                 foreach (TransicionesAFD transicionesAFD in Transiciones)
