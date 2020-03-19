@@ -276,14 +276,27 @@ namespace Proyecto1OLC
                         }
                         break;
                     case 3:
-                        if (c.CompareTo('"') == 0)
+                        if(c.CompareTo('"') == 0)
                         {
-                            auxlex += c;
-                            if (lex == 2)
+                             if (lex == 2)
                             {
-                                lexContent = auxlex;
+                                if (c.CompareTo('"') == 0 && entrada.ElementAt(i + 1).CompareTo(';') == 0 && entrada.ElementAt(i + 2).CompareTo('\n') == 0)
+                                {
+                                    auxlex += c;
+                                    lexContent = auxlex;
+                                    agregarToken(Token.Tipo.cadena);
+                                }
+                                else
+                                {
+                                    estado = 3;
+                                    auxlex += c;
+                                }
                             }
-                            agregarToken(Token.Tipo.cadena);
+                            else
+                            {
+                                auxlex += c;
+                                agregarToken(Token.Tipo.cadena);
+                            }
                         }
                         else
                         {
@@ -503,42 +516,6 @@ namespace Proyecto1OLC
                             auxlex += c;
                         }
                         break;
-                        /*case 15://Todo Fin
-                            if (c.CompareTo(':') == 0 && entrada.ElementAt(i+1).CompareTo(']') == 0)
-                            {
-                                auxlex += entrada.ElementAt(i + 1);
-                                agregarToken(Token.Tipo.TodoEnd);
-                                i += 1;
-                            }else if (c.CompareTo('n') == 0)
-                            {
-                                auxlex += c;
-                                agregarToken(Token.Tipo.Salto);
-                            }
-                            else if (c.CompareTo('\'') == 0)
-                            {
-                                auxlex += c;
-                                agregarToken(Token.Tipo.ComillaSimple);
-                            }
-                            else if (c.CompareTo('"') == 0)
-                            {
-                                auxlex += c;
-                                agregarToken(Token.Tipo.ComillaDoble);
-                            }
-                            else if (c.CompareTo('t') == 0)
-                            {
-                                auxlex += c;
-                                agregarToken(Token.Tipo.Tabulacion);
-                            }
-                            else
-                            {
-                                i -= 1;
-                                Console.WriteLine("Error Léxico con " + c);
-                                agregarError(fila, columna, auxlex, "Desconocido");
-                                agregarError(fila, columna, c.ToString(), "Desconocido");
-                                estado = 0;
-                            }
-                            break;
-                            */
                 }
             }
 
@@ -548,12 +525,6 @@ namespace Proyecto1OLC
 
         public void agregarToken(Token.Tipo tipo)
         {
-            /*
-            if (conjunto == 4)
-            {
-                conjuntoCONTENT += auxlex;
-            }
-            */
             if (expr == 2)
             {
                 expresion += auxlex;
