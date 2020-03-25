@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 
 namespace Proyecto1OLC
 {
@@ -583,6 +585,50 @@ namespace Proyecto1OLC
             catch (Exception e)
             {
             }
+
+            try
+            {
+                Document ReporteTokens = new Document();
+                PdfWriter.GetInstance(ReporteTokens, new FileStream("D:\\Tokens.pdf", FileMode.Create));
+                ReporteTokens.Open();
+                ReporteTokens.Add(new Paragraph("Reporte de Tokens", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 15, BaseColor.BLACK)));
+                ReporteTokens.Add(new Paragraph("\n\n"));
+                PdfPTable Tabla = new PdfPTable(6);
+                Tabla.WidthPercentage = 100;
+                PdfPCell title = new PdfPCell(new Paragraph("TOKENS"));
+                title.Colspan = 6;
+                title.HorizontalAlignment = Element.ALIGN_CENTER;
+                title.BackgroundColor = BaseColor.WHITE;
+                Tabla.AddCell(title);
+                Paragraph column1 = new Paragraph("#", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph column2 = new Paragraph("ID", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph column3 = new Paragraph("Lexema", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph column4 = new Paragraph("Tipo", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph column5 = new Paragraph("Fila", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Paragraph column6 = new Paragraph("Columna", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                Tabla.AddCell(column1);
+                Tabla.AddCell(column2);
+                Tabla.AddCell(column3);
+                Tabla.AddCell(column4);
+                Tabla.AddCell(column5);
+                Tabla.AddCell(column6);
+                int i = 0;
+                foreach (Token item in lista)
+                {
+                    i++;
+                    Tabla.AddCell(i.ToString());
+                    Tabla.AddCell(item.GetID().ToString());
+                    Tabla.AddCell(item.GetVal());
+                    Tabla.AddCell(item.GetTipo());
+                    Tabla.AddCell(item.GetFila().ToString());
+                    Tabla.AddCell(item.GetColumna().ToString());
+                }
+                ReporteTokens.Add(Tabla);
+                ReporteTokens.Close();
+            }catch(Exception e)
+            {
+
+            }
         }
         public void imprimiListaErrores(LinkedList<Errores> laser)
         {
@@ -619,6 +665,47 @@ namespace Proyecto1OLC
                 }
                 catch (Exception e)
                 {
+                }
+                try
+                {
+                    Document ReporteErrores = new Document();
+                    PdfWriter.GetInstance(ReporteErrores, new FileStream("D:\\Errores.pdf", FileMode.Create));
+                    ReporteErrores.Open();
+                    ReporteErrores.Add(new Paragraph("Reporte de Errores", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 15, BaseColor.BLACK)));
+                    ReporteErrores.Add(new Paragraph("\n\n"));
+                    PdfPTable Tabla = new PdfPTable(5);
+                    Tabla.WidthPercentage = 100;
+                    PdfPCell title = new PdfPCell(new Paragraph("ERRORES"));
+                    title.Colspan = 6;
+                    title.HorizontalAlignment = Element.ALIGN_CENTER;
+                    title.BackgroundColor = BaseColor.WHITE;
+                    Tabla.AddCell(title);
+                    Paragraph column1 = new Paragraph("#", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                    Paragraph column2 = new Paragraph("Fila", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                    Paragraph column3 = new Paragraph("Columna", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                    Paragraph column4 = new Paragraph("Caracter", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                    Paragraph column5 = new Paragraph("Descripción", FontFactory.GetFont(FontFactory.TIMES_ITALIC, 12));
+                    Tabla.AddCell(column1);
+                    Tabla.AddCell(column2);
+                    Tabla.AddCell(column3);
+                    Tabla.AddCell(column4);
+                    Tabla.AddCell(column5);
+                    int i = 0;
+                    foreach (Errores item in laser)
+                    {
+                        i++;
+                        Tabla.AddCell(i.ToString());
+                        Tabla.AddCell(item.GetFila().ToString());
+                        Tabla.AddCell(item.GetColumna().ToString());
+                        Tabla.AddCell(item.GetCaracter());
+                        Tabla.AddCell(item.GetDescripcion());
+                    }
+                    ReporteErrores.Add(Tabla);
+                    ReporteErrores.Close();
+                }
+                catch (Exception e)
+                {
+                   
                 }
             }
         }
